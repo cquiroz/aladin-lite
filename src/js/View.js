@@ -1454,7 +1454,7 @@ View = (function() {
     };
     
     View.prototype.setZoom = function(fovDegrees) {
-        if (fovDegrees<0 || fovDegrees>180) {
+        if (fovDegrees<0 || (fovDegrees>180 && ! this.aladin.options.allowFullZoomout)) {
             return;
         }
         var zoomLevel = Math.log(180/fovDegrees)/Math.log(1.15);
@@ -1639,15 +1639,11 @@ View = (function() {
         else {
             newImageSurvey = imageSurvey;
         }
-    
-        // do not touch the tileBuffer if we load the exact same HiPS (in that case, should we stop here??)    
-        if (newImageSurvey && this.imageSurvey && newImageSurvey.hasOwnProperty('id') && this.imageSurvey.hasOwnProperty('id') && newImageSurvey.id==this.imageSurvey.id) {
-            // do nothing
-        }
-        else {
-            // buffer reset
-            this.tileBuffer = new TileBuffer();
-        }
+ 
+        // TODO: this is a temporary fix for issue https://github.com/cds-astro/aladin-lite/issues/16
+        // ideally, instead of creating a new TileBuffer object,
+        //  one should remove from TileBuffer all Tile objects still in the download queue qui sont encore dans la download queue
+        this.tileBuffer = new TileBuffer();
 
         this.downloader.emptyQueue();
         
@@ -1877,6 +1873,8 @@ View = (function() {
         var overlay;
         var canvas=this.catalogCanvas;
         var ctx = canvas.getContext("2d");
+        // this makes footprint selection easier as the catch-zone is larger
+        ctx.lineWidth = 6;
 
         if (this.overlays) {
             for (var k=0; k<this.overlays.length; k++) {

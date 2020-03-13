@@ -1630,7 +1630,7 @@ Aladin.prototype.displayFITS = function(url, options, successCallback, errorCall
     $.ajax({
         url: 'https://alasky.unistra.fr/cgi/fits2HiPS',
         data: data,
-        method: 'POST',
+        method: 'GET',
         dataType: 'json',
         success: function(response) {
             if (response.status!='success') {

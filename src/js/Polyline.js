@@ -106,7 +106,8 @@ Polyline= (function() {
         if (! start) {
             return;
         }
-        
+       
+        ctx.beginPath();
         ctx.moveTo(start.vx, start.vy);
         var pt;
         for (var k=1; k<this.radecArray.length; k++) {
