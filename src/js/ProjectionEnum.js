@@ -21,14 +21,17 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File CooFrameEnum
- * 
+ *
  * Author: Thomas Boch[CDS]
- * 
+ *
  *****************************************************************************/
- 
- ProjectionEnum = {
+import {Projection} from './projection';
+
+ const ProjectionEnum = {
     SIN: Projection.PROJ_SIN,
     AITOFF:  Projection.PROJ_AITOFF
  };
+
+export default ProjectionEnum;

@@ -21,16 +21,17 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File Box
  *
  * A Box instance is a GUI element providing a div nested
  * in Aladin Lite parent div
- * 
+ *
  * Author: Thomas Boch [CDS]
- * 
+ *
  *****************************************************************************/
-Box = (function() {
+import $ from 'jquery';
+const Box = (function() {
 
     // constructor
     var Box = function(properties) {
@@ -43,7 +44,7 @@ Box = (function() {
         this.css = properties.css || {padding: '4px'};
 
         this.position = properties.position || 'bottom'; // position can be bottom, left, top or right
-        if (this.position=='right') {
+        if (this.position==='right') {
             this.css['left'] = 'unset';
         }
         this.css[this.position] = '4px';
@@ -60,7 +61,7 @@ Box = (function() {
         this.closeCallback = properties.closeCallback || undefined; // callback called when the user closes the panel
 
         this.changingDim = 'width';
-        if (this.position=='top' || this.position=='bottom') {
+        if (this.position==='top' || this.position==='bottom') {
             this.changingDim = 'height';
         }
 
@@ -83,13 +84,13 @@ Box = (function() {
             this.$parentDiv.show();
             this._updateChevron();
 
-            if (this.changingDim=='width') {
+            if (this.changingDim==='width') {
                 this.$parentDiv.find('.aladin-box-title-label').show();
             }
             var self = this;
             var options = {};
             options[this.changingDim] = 'show';
-            var delay = this.changingDim=='width' ? 0 : 400;
+            var delay = this.changingDim==='width' ? 0 : 400;
             this.$parentDiv.find('.aladin-box-content').animate(options, delay, function() {
                 self.css[self.position] = '4px';
                 self.updateStyle(self.css);
@@ -107,13 +108,13 @@ Box = (function() {
             this.open = false;
             this._updateChevron();
 
-            if (this.changingDim=='width') {
+            if (this.changingDim==='width') {
                 this.$parentDiv.find('.aladin-box-title-label').hide();
             }
             var self = this;
             var options = {};
             options[this.changingDim] = 'hide';
-            var delay = this.changingDim=='width' ? 0 : 400;
+            var delay = this.changingDim==='width' ? 0 : 400;
             this.$parentDiv.find('.aladin-box-content').animate(options, delay, function() {
                 self.css[self.position] = '0px';
                 self.updateStyle(self.css);
@@ -192,25 +193,26 @@ Box = (function() {
 
     // return the jquery object corresponding to the given position and open/close state
     var getChevronClass = function(position, isOpen) {
-        if (position=='top' && isOpen || position=='bottom' && !isOpen) {
+        if (( position==='top' && isOpen ) || ( position==='bottom' && !isOpen )) {
             return 'aladin-chevron-up';
         }
-        if (position=='bottom' && isOpen || position=='top' && !isOpen) {
+        if (( position==='bottom' && isOpen ) || ( position==='top' && !isOpen )) {
             return 'aladin-chevron-down';
         }
-        if (position=='right' && isOpen || position=='left' && !isOpen) {
+        if (( position==='right' && isOpen) || ( position==='left' && !isOpen )) {
             return 'aladin-chevron-right';
         }
-        if (position=='left' && isOpen || position=='right' && !isOpen) {
+        if (( position==='left' && isOpen ) || ( position==='right' && !isOpen )) {
             return 'aladin-chevron-left';
         }
         return '';
     };
 
-    
+
 
 
     return Box;
 
 })();
 
+export default Box;

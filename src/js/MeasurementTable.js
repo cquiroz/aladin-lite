@@ -21,24 +21,24 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File MeasurementTable
  *
  * Graphic object showing measurement of a catalog
- * 
+ *
  * Author: Thomas Boch[CDS]
- * 
+ *
  *****************************************************************************/
+import $ from 'jquery';
 
-MeasurementTable = (function() {
-
+const MeasurementTable = (function() {
 
     // constructor
-    MeasurementTable = function(aladinLiteDiv) {
+    const MeasurementTable = function(aladinLiteDiv) {
         this.isShowing = false;
 
         this.divEl = $('<div class="aladin-measurement-div"></div>');
-        
+
         $(aladinLiteDiv).append(this.divEl);
     }
 
@@ -47,7 +47,7 @@ MeasurementTable = (function() {
         this.divEl.empty();
         var header = '<thead><tr>';
         var content = '<tr>';
-        for (key in source.data) {
+        for (var key in source.data) {
             header += '<th>' + key + '</th>';
             content += '<td>' + source.data[key] + '</td>';
         }
@@ -60,12 +60,13 @@ MeasurementTable = (function() {
     MeasurementTable.prototype.show = function() {
         this.divEl.show();
     };
-    
+
     MeasurementTable.prototype.hide = function() {
         this.divEl.hide();
     };
-    
-    
+
+
     return MeasurementTable;
 })();
 
+export default MeasurementTable;

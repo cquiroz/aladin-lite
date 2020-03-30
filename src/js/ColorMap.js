@@ -21,26 +21,27 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File ColorMap.js
- * 
+ *
  * Author: Thomas Boch[CDS]
- * 
+ *
  *****************************************************************************/
+import AladinUtils from './AladinUtils';
 
-ColorMap = (function() {
-    
-    
+const ColorMap = (function() {
+
+
     // constructor
-    ColorMap = function(view) {
+    const ColorMap = function(view) {
         this.view = view;
         this.reversed = false;
         this.mapName = 'native';
         this.sig = this.signature();
     };
-    
+
 ColorMap.MAPS = {};
-    
+
     ColorMap.MAPS['eosb'] = {
             name: 'Eos B',
             r: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -163,10 +164,10 @@ ColorMap.MAPS = {};
     };
 
 
-    
+
     ColorMap.MAPS_CUSTOM = ['cubehelix', 'eosb', 'rainbow'];
     ColorMap.MAPS_NAMES = ['native', 'grayscale'].concat(ColorMap.MAPS_CUSTOM);
-    
+
     ColorMap.prototype.reverse = function(val) {
         if (val) {
             this.reversed = val;
@@ -177,45 +178,45 @@ ColorMap.MAPS = {};
         this.sig = this.signature();
         this.view.requestRedraw();
     };
-    
-    
+
+
     ColorMap.prototype.signature = function() {
         var s = this.mapName;
-        
+
         if (this.reversed) {
             s += ' reversed';
         }
-        
+
         return s;
     };
-    
+
     ColorMap.prototype.update = function(mapName) {
         this.mapName = mapName;
         this.sig = this.signature();
         this.view.requestRedraw();
     };
-    
+
     ColorMap.prototype.apply = function(img) {
-        if ( this.sig=='native' ) {
+        if ( this.sig==='native' ) {
             return img;
         }
-        
-        if (img.cmSig==this.sig) {
+
+        if (img.cmSig===this.sig) {
             return img.cmImg; // return cached pixels
         }
-        
+
         var canvas = document.createElement("canvas");
         canvas.width = img.width;
         canvas.height = img.height;
         var ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0);
-        
+
         var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         var pixelData = imageData.data;
         var length = pixelData.length;
         var a, b, c;
         var switchCase = 3;
-        if (this.mapName=='grayscale') {
+        if (this.mapName==='grayscale') {
             switchCase = 1;
         }
         else if (ColorMap.MAPS_CUSTOM.indexOf(this.mapName)>=0) {
@@ -242,29 +243,31 @@ ColorMap.MAPS = {};
                     a = pixelData[i];
                     b = pixelData[i + 1];
                     c = pixelData[i + 2];
-                    
+
             }
-            if (switchCase!=2 && this.reversed) {
+            if (switchCase!==2 && this.reversed) {
                 a = 255-a;
                 b = 255-b;
                 c = 255-c;
-              
+
             }
             pixelData[i]     = a;
             pixelData[i + 1] = b;
             pixelData[i + 2] = c;
-            
+
         }
         imageData.data = pixelData;
         ctx.putImageData(imageData, 0, 0);
-        
+
         // cache image with color map applied
         img.cmSig = this.sig;
         img.cmImg = canvas;
 
         return img.cmImg;
     };
-    
+
     return ColorMap;
 })();
-    
+
+export default ColorMap;
+

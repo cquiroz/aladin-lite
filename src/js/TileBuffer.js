@@ -21,16 +21,17 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File TileBuffer
- * 
+ *
  * Author: Thomas Boch[CDS]
- * 
+ *
  *****************************************************************************/
+import Tile from './Tile';
 
-TileBuffer = (function() {
+const TileBuffer = (function() {
 	var NB_MAX_TILES = 800; // buffer size
-	
+
 	// constructor
 	function TileBuffer() {
 		this.pointer = 0;
@@ -41,7 +42,7 @@ TileBuffer = (function() {
 			this.tilesArray[i] = new Tile(new Image(), null);
 		}
 	};
-	
+
 	TileBuffer.prototype.addTile = function(url) {
 	    // return null if already in buffer
         if (this.getTile(url)) {
@@ -65,10 +66,12 @@ TileBuffer = (function() {
 
         return this.tilesMap[url];
 	};
-	
+
 	TileBuffer.prototype.getTile = function(url) {
         return this.tilesMap[url];
 	};
-	
+
 	return TileBuffer;
 })();
+
+export default TileBuffer;

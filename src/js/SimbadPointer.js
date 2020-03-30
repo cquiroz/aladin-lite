@@ -21,24 +21,26 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File SimbadPointer.js
  *
  * The SIMBAD pointer will query Simbad for a given position and radius and
- * return information on the object with 
- *  
+ * return information on the object with
+ *
  * Author: Thomas Boch [CDS]
- * 
+ *
  *****************************************************************************/
+import Utils from './Utils';
+import Coo from './coo';
 
-SimbadPointer = (function() {
-    
-    
-    SimbadPointer = {};
+const SimbadPointer = (function() {
+
+
+    const SimbadPointer = {};
 
     SimbadPointer.MIRRORS = ['https://alasky.u-strasbg.fr/cgi/simbad-flat/simbad-quick.py', 'https://alaskybis.u-strasbg.fr/cgi/simbad-flat/simbad-quick.py']; // list of base URL for Simbad pointer service
 
-    
+
     SimbadPointer.query = function(ra, dec, radiusDegrees, aladinInstance) {
         var coo = new Coo(ra, dec, 7);
         var params = {Ident: coo.format('s/'), SR: radiusDegrees}
@@ -76,4 +78,5 @@ SimbadPointer = (function() {
 
     return SimbadPointer;
 })();
-    
+
+export default SimbadPointer;

@@ -21,38 +21,39 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File HealpixGrid
- * 
+ *
  * Author: Thomas Boch[CDS]
- * 
+ *
  *****************************************************************************/
 
-HealpixGrid = (function() {
+const HealpixGrid = (function() {
 	var HealpixGrid = function() {
 	};
-	
+
 	HealpixGrid.prototype.redraw = function(ctx, cornersXYViewMap, fov, norder) {
 		// on dessine les lignes
 		ctx.lineWidth = 1;
 		ctx.strokeStyle = "rgb(150,150,220)";
 		ctx.beginPath();
+    var ipix=0;
 		var cornersXYView;
 		for (var k=0, len=cornersXYViewMap.length; k<len; k++) {
 			cornersXYView = cornersXYViewMap[k];
 			ipix = cornersXYView.ipix;
-			
+
 			// draw pixel
 			ctx.moveTo(cornersXYView[0].vx, cornersXYView[0].vy);
 			ctx.lineTo(cornersXYView[1].vx, cornersXYView[1].vy);
 			ctx.lineTo(cornersXYView[2].vx, cornersXYView[2].vy);
 			//ctx.lineTo(cornersXYView[3].vx, cornersXYView[3].vy);
-			
+
 
             //ctx.strokeText(ipix, (cornersXYView[0].vx + cornersXYView[2].vx)/2, (cornersXYView[0].vy + cornersXYView[2].vy)/2);
 		}
 		ctx.stroke();
-		
+
 		// on dessine les numéros de pixel HEALpix
         ctx.strokeStyle="#FFDDDD";
 		ctx.beginPath();
@@ -65,7 +66,9 @@ HealpixGrid = (function() {
 		ctx.stroke();
 	};
 
-	
-	
+
+
 	return HealpixGrid;
 })();
+
+export default HealpixGrid;

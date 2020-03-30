@@ -21,17 +21,18 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File URLBuilder
- * 
+ *
  * Author: Thomas Boch[CDS]
- * 
+ *
  *****************************************************************************/
+import Coo from './coo';
+import Utils from './Utils';
 
+const URLBuilder = (function() {
 
-URLBuilder = (function() {    
-
-    URLBuilder = {
+    const URLBuilder = {
         buildSimbadCSURL: function(target, radiusDegrees) {
             if (target && (typeof target  === "object")) {
                 if ('ra' in target && 'dec' in target) {
@@ -57,7 +58,7 @@ URLBuilder = (function() {
                     target = coo.format('s');
                 }
             }
-            
+
             var maxNbSources = 1e5;
             if (options && options.hasOwnProperty('limit') && Utils.isNumber(options.limit)) {
                 maxNbSources = parseInt(options.limit);
@@ -82,11 +83,12 @@ URLBuilder = (function() {
 
             return url;
         }
-    
+
 
     };
 
     return URLBuilder;
-    
+
 })();
 
+export default URLBuilder;

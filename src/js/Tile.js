@@ -21,20 +21,20 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File Tile
- * 
+ *
  * Author: Thomas Boch[CDS]
- * 
+ *
  *****************************************************************************/
 
-Tile = (function() {
+const Tile = (function() {
     // constructor
 	function Tile(img, url) {
 		this.img = img;
 		this.url = url;
 	};
-	
+
 	// check whether the image corresponding to the tile is loaded and ready to be displayed
 	//
 	// source : http://www.sajithmr.me/javascript-check-an-image-is-loaded-or-not
@@ -42,7 +42,7 @@ Tile = (function() {
 		if (img.allSkyTexture) {
 			return true;
 		}
-		
+
         if (!img.src) {
             return false;
         }
@@ -65,7 +65,9 @@ Tile = (function() {
 	    // No other way of checking: assume it’s ok.
 	    return true;
 	};
-	
+
 
 	return Tile;
 })();
+
+export default Tile;

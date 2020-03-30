@@ -24,3 +24,6 @@
 var cds = cds || {};
 
 var A = A || {};
+
+module.exports.cds = cds
+module.exports.A = A;

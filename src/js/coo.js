@@ -1,6 +1,7 @@
 //=================================
 // Class Coo
 //=================================
+import AstroMath from './astroMath'
 
 /**
  * Constructor
@@ -28,8 +29,8 @@ Coo.prototype = {
 
 		this.x = coslat*AstroMath.cosd(this.lon);
 		this.y = coslat*AstroMath.sind(this.lon);
-		this.z = AstroMath.sind(this.lat);	
-	}, 
+		this.z = AstroMath.sind(this.lat);
+	},
 	computeLonLat: function() {
 		var r2 = this.x*this.x+this.y*this.y;
 		this.lon = 0.0;
@@ -98,7 +99,7 @@ Coo.prototype = {
      */
     rotate: function(R) {
       var X, Y, Z;
-		if (R == Umatrix3) return;
+		// if (R == Umatrix3) return;
 		X = R[0][0]*this.x + R[0][1]*this.y + R[0][2]*this.z;
 		Y = R[1][0]*this.x + R[1][1]*this.y + R[1][2]*this.z;
 		Z = R[2][0]*this.x + R[2][1]*this.y + R[2][2]*this.z;
@@ -114,7 +115,7 @@ Coo.prototype = {
      */
     rotate_1: function(R) {
       var X, Y, Z;
-      if (R == Umatrix3) return;
+      // if (R == Umatrix3) return;
 		X = R[0][0]*this.x + R[1][0]*this.y + R[2][0]*this.z;
 		Y = R[0][1]*this.x + R[1][1]*this.y + R[2][1]*this.z;
 		Z = R[0][2]*this.x + R[1][2]*this.y + R[2][2]*this.z;
@@ -150,7 +151,7 @@ Coo.prototype = {
 		}
 		var strlon = str.substring(0,p);
 		var strlat = str.substring(p);
-	
+
 		this.lon = this.parseLon(strlon);	// sets the precision parameter
 		this.lat = this.parseLat(strlat);	// sets the precision parameter
 		return true;
@@ -184,10 +185,10 @@ Coo.prototype = {
 				i++;
 			}
 			this.prec = pr;
-			return l*15/3600.0;	
+			return l*15/3600.0;
 		}
 	},
-			
+
 	parseLat: function(str) {
 		var str = str.trim();
         str = str.replace(/:/g, ' ');
@@ -226,7 +227,7 @@ Coo.prototype = {
 				i++;
 			}
 			this.prec = pr;
-			return l*sign/3600.0;	
+			return l*sign/3600.0;
 		}
 	},
 
@@ -257,7 +258,7 @@ Coo.prototype = {
 		}
 		return strlon+strlat;
 	}
-		
+
 }
 
 /**
@@ -448,3 +449,5 @@ Numbers.toSexagesimal = function(num, prec, plus) {
 			return sign+Numbers.format(n, 1);
 	}
 }
+
+export default Coo;

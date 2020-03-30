@@ -22,27 +22,25 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File Utils
- * 
+ *
  * Author: Thomas Boch[CDS]
- * 
+ *
  *****************************************************************************/
 
-Utils = Utils || {};
+import $ from 'jquery';
+// import Alading from './Aladin';
+
+const Utils = {};
 
 Utils.cssScale = undefined;
-// adding relMouseCoords to HTMLCanvasElement prototype (see http://stackoverflow.com/questions/55677/how-do-i-get-the-coordinates-of-a-mouse-click-on-a-canvas-element ) 
+// adding relMouseCoords to HTMLCanvasElement prototype (see http://stackoverflow.com/questions/55677/how-do-i-get-the-coordinates-of-a-mouse-click-on-a-canvas-element )
 function relMouseCoords(event) {
-    var totalOffsetX = 0;
-    var totalOffsetY = 0;
-    var canvasX = 0;
-    var canvasY = 0;
-    var currentElement = this;
-   
+
     if (event.offsetX) {
         return {x: event.offsetX, y:event.offsetY};
-    } 
+    }
     else {
         if (!Utils.cssScale) {
             var st = window.getComputedStyle(document.body, null);
@@ -90,7 +88,7 @@ HTMLCanvasElement.prototype.relMouseCoords = relMouseCoords;
 
 
 
-//Function.prototype.bind polyfill from 
+//Function.prototype.bind polyfill from
 //https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
 if (!Function.prototype.bind) {
     Function.prototype.bind = function (obj) {
@@ -113,23 +111,6 @@ if (!Function.prototype.bind) {
         return bound;
     };
 }
-
-
-
-
-
-
-
-
-$ = $ || jQuery;
-
-/* source : http://stackoverflow.com/a/8764051 */
-$.urlParam = function(name, queryString){
-    if (queryString===undefined) {
-        queryString = location.search;
-    }
-	return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(queryString)||[,""])[1].replace(/\+/g, '%20'))||null;
-};
 
 /* source: http://stackoverflow.com/a/1830844 */
 Utils.isNumber = function(n) {
@@ -186,7 +167,7 @@ Utils.LRUCache = function (maxsize) {
     this._size = 0;
     this._maxsize = maxsize || 1024;
 };
-   
+
 Utils.LRUCache.prototype = {
         set: function (key, value) {
             var keys = this._keys,
@@ -223,7 +204,7 @@ Utils.LRUCache.prototype = {
             if (item) this._expires[key] = Date.now();
             return item;
         },
-        
+
         keys: function() {
             return this._keys;
         }
@@ -240,9 +221,7 @@ Utils.LRUCache.prototype = {
  */
 Utils.loadFromMirrors = function(urls, options) {
     var data    = options && options.data || null;
-    var method = options && options.method || 'GET';
     var dataType = options && options.dataType || null;
-    var timeout = options && options.timeout || 20;
 
     var onSuccess = options && options.onSuccess || null;
     var onFailure = options && options.onFailure || null;
@@ -267,7 +246,7 @@ Utils.loadFromMirrors = function(urls, options) {
              Utils.loadFromMirrors(urls.slice(1), options);
         });
     }
-} 
+}
 
 // return the jquery ajax object configured with the requested parameters
 // by default, we use the proxy (safer, as we don't know if the remote server supports CORS)
@@ -275,9 +254,11 @@ Utils.getAjaxObject = function(url, method, dataType, useProxy) {
         if (useProxy!==false) {
             useProxy = true;
         }
+        const JsonProxy =
+          "" //Aladin.JSONP_PROXY
 
         if (useProxy===true) {
-            var urlToRequest = Aladin.JSONP_PROXY + '?url=' + encodeURIComponent(url);
+            var urlToRequest = JsonProxy + '?url=' + encodeURIComponent(url);
         }
         else {
             urlToRequest = url;
@@ -289,7 +270,7 @@ Utils.getAjaxObject = function(url, method, dataType, useProxy) {
             url: urlToRequest,
             method: method,
             dataType: dataType
-        }); 
+        });
 };
 
 // return true if script is executed in a HTTPS context
@@ -315,3 +296,22 @@ Utils.uuidv4 = function() {
     });
 }
 
+Utils.radecToPolar = function(t, s) {
+  return {
+    theta: Math.PI / 2 - (s / 180) * Math.PI,
+    phi: (t / 180) * Math.PI
+  };
+};
+
+Utils.polarToRadec = function(t, s) {
+  return {
+    ra: (180 * s) / Math.PI,
+    dec: (180 * (Math.PI / 2 - t)) / Math.PI
+  };
+};
+Utils.castToInt = function(t) {
+
+  return t > 0 ? Math.floor(t) : Math.ceil(t);
+};
+
+export default Utils;

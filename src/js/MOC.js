@@ -1,16 +1,29 @@
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File MOC
  *
  * This class represents a MOC (Multi Order Coverage map) layer
- * 
+ *
  * Author: Thomas Boch[CDS]
- * 
+ *
  *****************************************************************************/
+import Color from './Color';
+import ColorMap from './ColorMap';
+import Coo from './coo';
+import Utils from './Utils';
+import ProjectionEnum from './ProjectionEnum';
+import Aladin from './Aladin';
+import AladinUtils from './AladinUtils';
+import CooConversion from './CooConversion';
+import CooFrameEnum from './CooFrameEnum';
+import HealpixCache from './HealpixCache';
+import SpatialVector from './SpatialVector';
+import HealpixIndex from './HealpixIndex';
+import astro from './fits';
 
-MOC = (function() {
-    MOC = function(options) {
+const MOC = (function() {
+    const MOC = function(options) {
         this.order = undefined;
 
         this.type = 'moc';
@@ -40,7 +53,7 @@ MOC = (function() {
         this.ready = false;
     }
 
-    
+
     function log2(val) {
         return Math.log(val) / Math.LN2;
     }
@@ -69,7 +82,7 @@ MOC = (function() {
                 this._lowResIndexOrder3[k][key] = aDedup;
             }
         }
-        
+
     }
 
     // add pixel (order, ipix)
@@ -91,8 +104,8 @@ MOC = (function() {
                 this._highResIndexOrder3[ipixOrder3][order] = [];
             }
             this._highResIndexOrder3[ipixOrder3][order].push(ipix);
-            
-            var degradedOrder = MOC.LOWRES_MAXORDER; 
+
+            var degradedOrder = MOC.LOWRES_MAXORDER;
             var degradedIpix  = Math.floor(ipix / Math.pow(4, (order - degradedOrder)));
             var degradedIpixOrder3 = Math.floor( degradedIpix * Math.pow(4, (3 - degradedOrder)) );
             if (! (degradedOrder in this._lowResIndexOrder3[degradedIpixOrder3])) {
@@ -103,7 +116,7 @@ MOC = (function() {
         // 3. if order > HIGHRES_MAXORDER , degrade ipix for low res and high res cells
         else {
             // low res cells
-            var degradedOrder = MOC.LOWRES_MAXORDER; 
+            var degradedOrder = MOC.LOWRES_MAXORDER;
             var degradedIpix  = Math.floor(ipix / Math.pow(4, (order - degradedOrder)));
             var degradedIpixOrder3 = Math.floor(degradedIpix * Math.pow(4, (3 - degradedOrder)) );
             if (! (degradedOrder in this._lowResIndexOrder3[degradedIpixOrder3])) {
@@ -111,9 +124,9 @@ MOC = (function() {
             }
             this._lowResIndexOrder3[degradedIpixOrder3][degradedOrder].push(degradedIpix);
 
-            
+
             // high res cells
-            degradedOrder = MOC.HIGHRES_MAXORDER; 
+            degradedOrder = MOC.HIGHRES_MAXORDER;
             degradedIpix  = Math.floor(ipix / Math.pow(4, (order - degradedOrder)));
             var degradedIpixOrder3 = Math.floor(degradedIpix * Math.pow(4, (3 - degradedOrder)) );
             if (! (degradedOrder in this._highResIndexOrder3[degradedIpixOrder3])) {
@@ -241,7 +254,7 @@ MOC = (function() {
         this.view = view;
         this.reportChange();
     };
-    
+
     MOC.prototype.draw = function(ctx, projection, viewFrame, width, height, largestDim, zoomFactor, fov) {
         if (! this.isShowing || ! this.ready) {
             return;
@@ -269,7 +282,7 @@ MOC = (function() {
         var orderedKeys = [];
         for (var k=0; k<768; k++) {
             var mocCells = mocCellsIdxOrder3[k];
-            for (key in mocCells) {
+            for (var key in mocCells) {
                 orderedKeys.push(parseInt(key));
             }
         }
@@ -282,7 +295,7 @@ MOC = (function() {
         // let's test first all potential visible cells and keep only the one with a projection inside the view
         for (var k=0; k<potentialVisibleHpxCellsOrder3.length; k++) {
             var ipix = potentialVisibleHpxCellsOrder3[k];
-            xyCorners = getXYCorners(8, ipix, viewFrame, surveyFrame, width, height, largestDim, zoomFactor, projection); 
+            xyCorners = getXYCorners(8, ipix, viewFrame, surveyFrame, width, height, largestDim, zoomFactor, projection);
             if (xyCorners) {
                 visibleHpxCellsOrder3.push(ipix);
             }
@@ -299,14 +312,14 @@ MOC = (function() {
                 if (typeof mocCells[norder]==='undefined') {
                     continue;
                 }
-            
+
                 if (norder<=3) {
                     for (var j=0; j<mocCells[norder].length; j++) {
                         ipix = mocCells[norder][j];
                         var factor = Math.pow(4, (3-norder));
                         var startIpix = ipix * factor;
                         for (var k=0; k<factor; k++) {
-                            norder3Ipix = startIpix + k;
+                            var norder3Ipix = startIpix + k;
                             xyCorners = getXYCorners(8, norder3Ipix, viewFrame, surveyFrame, width, height, largestDim, zoomFactor, projection);
                             if (xyCorners) {
                                 drawCorners(ctx, xyCorners);
@@ -372,6 +385,8 @@ MOC = (function() {
         var spVec = _spVec;
 
         var corners = HealpixCache.corners_nest(ipix, nside);
+      var lon = 0
+      var lat = 0
         for (var k=0; k<4; k++) {
             spVec.setXYZ(corners[k].x, corners[k].y, corners[k].z);
 
@@ -466,7 +481,7 @@ MOC = (function() {
                     for (var k=mocCells[order].length; k>=0; k--) {
                         if (ipixMapByOrder[order] == mocCells[order][k]) {
                             return true;
-                        }   
+                        }
                     }
                 }
             }
@@ -479,7 +494,7 @@ MOC = (function() {
             for (var k=mocCells[order].length; k>=0; k--) {
                 if (ipixMapByOrder[order] == mocCells[order][k]) {
                     return true;
-                }   
+                }
             }
         }
 
@@ -492,4 +507,4 @@ MOC = (function() {
 
 })();
 
-    
+export default MOC;

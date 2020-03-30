@@ -21,19 +21,24 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File Circle
- * 
+ *
  * Author: Thomas Boch[CDS]
- * 
+ *
  *****************************************************************************/
+import Utils from './Utils';
+import AladinUtils from './AladinUtils';
+import CooFrameEnum from './CooFrameEnum';
+import CooConversion from './CooConversion';
+import Overlay from './Overlay';
 
 // TODO : Circle and Footprint should inherit from the same root object
-Circle = (function() {
+const Circle = (function() {
     // constructor
-    Circle = function(centerRaDec, radiusDegrees, options) {
+    const Circle = function(centerRaDec, radiusDegrees, options) {
         options = options || {};
-        
+
         this.color = options['color'] || undefined;
 
         // TODO : all graphic overlays should have an id
@@ -42,7 +47,7 @@ Circle = (function() {
         this.setCenter(centerRaDec);
         this.setRadius(radiusDegrees);
     	this.overlay = null;
-    	
+
     	this.isShowing = true;
     	this.isSelected = false;
     };
@@ -50,7 +55,7 @@ Circle = (function() {
     Circle.prototype.setOverlay = function(overlay) {
         this.overlay = overlay;
     };
-    
+
     Circle.prototype.show = function() {
         if (this.isShowing) {
             return;
@@ -60,7 +65,7 @@ Circle = (function() {
             this.overlay.reportChange();
         }
     };
-    
+
     Circle.prototype.hide = function() {
         if (! this.isShowing) {
             return;
@@ -70,7 +75,7 @@ Circle = (function() {
             this.overlay.reportChange();
         }
     };
-    
+
     Circle.prototype.dispatchClickEvent = function() {
         if (this.overlay) {
             // footprint selection code adapted from Fabrizio Giordano dev. from Serco for ESA/ESDC
@@ -83,7 +88,7 @@ Circle = (function() {
             }));
         }
     };
-    
+
     Circle.prototype.select = function() {
         if (this.isSelected) {
             return;
@@ -114,7 +119,7 @@ Circle = (function() {
     };
 
 
-    
+
     Circle.prototype.setCenter = function(centerRaDec) {
         this.centerRaDec = centerRaDec;
         if (this.overlay) {
@@ -178,7 +183,7 @@ Circle = (function() {
         if (! baseColor) {
             baseColor = '#ff0000';
         }
-        
+
         if (this.isSelected) {
             ctx.strokeStyle= Overlay.increaseBrightness(baseColor, 50);
         }
@@ -191,7 +196,9 @@ Circle = (function() {
         if (!noStroke) {
             ctx.stroke();
         }
-    }; 
-    
+    };
+
     return Circle;
 })();
+
+export default Circle;

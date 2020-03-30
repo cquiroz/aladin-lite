@@ -1,0 +1,31 @@
+{
+  "name": "@cquiroz/aladin-lite",
+  "version": "0.0.5",
+  "description": "AladinLite module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cquiroz/aladin-lite.git"
+  },
+  "keywords": [
+    "astronomy",
+    "catalog",
+    "aladin"
+  ],
+  "author": "Thomas Boch",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/cquiroz/aladin-lite/issues"
+  },
+  "homepage": "https://github.com/cquiroz/aladin-lite#readme",
+  "devDependencies": {
+    "eslint": "^6.8.0"
+  },
+  "dependencies": {
+    "raf": "^3.4.1",
+    "stats.js": "^0.17.0"
+  }
+}

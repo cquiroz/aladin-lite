@@ -1,4 +1,6 @@
-function Projection(lon0, lat0) {
+import AstroMath from './astroMath';
+
+export function Projection(lon0, lat0) {
 	this.PROJECTION = Projection.PROJ_TAN;
 	this.ROT = this.tr_oR(lon0, lat0);
 
@@ -11,7 +13,7 @@ function Projection(lon0, lat0) {
 
 Projection.PROJ_TAN = 1;	/* Gnomonic projection*/
 Projection.PROJ_TAN2 = 2;	/* Stereographic projection*/
-Projection.PROJ_STG = 2;	
+Projection.PROJ_STG = 2;
 Projection.PROJ_SIN = 3;	/* Orthographic		*/
 Projection.PROJ_SIN2 = 4;	/* Equal-area 		*/
 Projection.PROJ_ZEA = 4;	/* Zenithal Equal-area 	*/
@@ -21,9 +23,9 @@ Projection.PROJ_AITOFF = 6;	/* Aitoff Projection	*/
 Projection.PROJ_AIT = 6;	/* Aitoff Projection	*/
 Projection.PROJ_GLS = 7;	/* Global Sin (Sanson)	*/
 Projection.PROJ_MERCATOR = 8;
-Projection.PROJ_MER = 8;	
+Projection.PROJ_MER = 8;
 Projection.PROJ_LAM = 9;	/* Lambert Projection	*/
-Projection.PROJ_LAMBERT = 9;	
+Projection.PROJ_LAMBERT = 9;
 Projection.PROJ_TSC = 10;	/* Tangent Sph. Cube	*/
 Projection.PROJ_QSC = 11;	/* QuadCube Sph. Cube	*/
 
@@ -44,12 +46,12 @@ Projection.PROJ_NAME = [
 	'Aitoff', 'Global sin', 'Mercator', 'Lambert'
 ];
 
-Projection.prototype = { 
-	
+Projection.prototype = {
+
 	/** Set the center of the projection
-	 * 
+	 *
 	 * (ajout T. Boch, 19/02/2013)
-	 * 
+	 *
 	 * */
 	setCenter: function(lon0, lat0) {
 		this.ROT = this.tr_oR(lon0, lat0);
@@ -62,7 +64,7 @@ Projection.prototype = {
     reverseLongitude: function(b) {
         this.longitudeIsReversed = b;
     },
-	
+
 	/**
 	 * Set the projection to use
 	 * p = projection code
@@ -131,7 +133,7 @@ Projection.prototype = {
 		var X,Y;
 
 		r = AstroMath.hypot(x,y);			// r = cos b
-		if (r == 0.0 && z == 0.0) return null;
+		if (r === 0.0 && z === 0.0) return null;
 
 		switch(proj) {
 			default:
@@ -141,7 +143,7 @@ Projection.prototype = {
 			case Projection.PROJ_AITOFF:
 				den = Math.sqrt(r*(r+x)/2.0); 		// cos b . cos l/2
 				X = Math.sqrt(2.0*r*(r-x));
-				den = Math.sqrt((1.0 + den)/2.0); 
+				den = Math.sqrt((1.0 + den)/2.0);
 				X = X / den;
 				Y = z / den;
 				if (y < 0.0) X = -X;
@@ -150,12 +152,12 @@ Projection.prototype = {
 
 			case Projection.PROJ_GLS:
 				Y = Math.asin(z);				// sin b
-				X = (r != 0) ? Math.atan2(y,x)*r : 0.0;
+				X = (r !== 0) ? Math.atan2(y,x)*r : 0.0;
 				pp = [ X, Y];
 				break;
 
 			case Projection.PROJ_MERCATOR:
-				if (r != 0) {
+				if (r !== 0) {
 					X = Math.atan2(y,x);
 					Y = AstroMath.atanh(z);
 					pp = [ X, Y];
@@ -213,7 +215,7 @@ Projection.prototype = {
 
 			case Projection.PROJ_SIN2:	// Always possible
 				den = Math.sqrt((1.0 + x)/2.0);
-				if (den != 0)	{
+				if (den !== 0)	{
 					X = y / den;
 					Y = z / den;
 				} else {
@@ -227,7 +229,7 @@ Projection.prototype = {
 			case Projection.PROJ_LAMBERT:	// Always possible
 				Y = z;
 				X = 0;
-				if (r != 0)	X = Math.atan2(y,x);
+				if (r !== 0)	X = Math.atan2(y,x);
 				pp = [ X, Y ];
 				break;
 	  }
@@ -238,7 +240,7 @@ Projection.prototype = {
 	 * Computes Unit vector from a position in projection centered at position (0,0).
 	 * proj = projection code
 	 * X,Y : coordinates of the point in the projection
-	 * returns : the unit vector u[3] or a face number for cube projection. 
+	 * returns : the unit vector u[3] or a face number for cube projection.
 	 *           null if the point is outside the limits, or if the projection is unknown.
 	 */
 	tr_pu: function( proj, X, Y ) {
@@ -249,7 +251,7 @@ Projection.prototype = {
 			return null;
 
 			case Projection.PROJ_AITOFF:
-				// Limit is ellipse with axises 
+				// Limit is ellipse with axises
 				// a = 2 * sqrt(2) ,  b = sqrt(2)
 				// Compute dir l/2, b
 				r = X*X/8.e0 + Y*Y/2.e0; 	// 1 - cos b . cos l/2
@@ -263,7 +265,7 @@ Projection.prototype = {
 				z = Y * s ;
 				// From (l/2,b) to (l,b)
 				r = AstroMath.hypot( x, y ) ;	// cos b
-				if (r != 0.0) {
+				if (r !== 0.0) {
 					s = x;
 					x = (s*s - y*y) /r;
 					y = 2.0 * s * y/r;
@@ -278,7 +280,7 @@ Projection.prototype = {
 					return null;
 				}
 				r = Math.sqrt(r);		// cos b
-				if (r != 0.0) {
+				if (r !== 0.0) {
 					s = X/r;	// Longitude
 				} else {
 					s = 0.0;	// For poles
@@ -305,7 +307,7 @@ Projection.prototype = {
 				x = r * Math.cos(X);
 				y = r * Math.sin(X);
 				break;
-	
+
 			case Projection.PROJ_TAN:
 				// No limit
 				x = 1.0 / Math.sqrt(1.0 + X*X + Y*Y);
@@ -378,7 +380,7 @@ Projection.prototype = {
 		R[1][1] =  AstroMath.cosd(lon);
 		R[1][0] =  -AstroMath.sind(lon);
 		R[1][2] =  0.0;
-		R[0][0] =  R[2][2] * R[1][1];  
+		R[0][0] =  R[2][2] * R[1][1];
 		R[0][1] = -R[2][2] * R[1][0];
 		R[2][0] = -R[0][2] * R[1][1];
 		R[2][1] =  R[0][2] * R[1][0];
@@ -444,12 +446,12 @@ Projection.prototype = {
 	 * return o = [ ra, dec ]
 	 */
 	tr_uo: function(u) {
-		var x = u[0]; var y = u[1]; var z = u[2];  
+		var x = u[0]; var y = u[1]; var z = u[2];
 		var r2 = x*x + y*y;
 		var ra, dec;
-		if (r2  == 0.0) {
+		if (r2 === 0.0) {
 	 		// in case of poles
-			if (z == 0.0) {
+			if (z === 0.0) {
 				return null;
 			}
 			ra = 0.0;
@@ -463,3 +465,4 @@ Projection.prototype = {
 		return [ ra, dec ];
 	}
 }
+

@@ -22,16 +22,26 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File Catalog
- * 
+ *
  * Author: Thomas Boch[CDS]
- * 
+ *
  *****************************************************************************/
+import $ from 'jquery';
+import Color from './Color';
+import HealpixIndex from './HealpixIndex';
+import Utils from './Utils';
+import AladinUtils from './AladinUtils';
+import CooConversion from './CooConversion';
+import CooFrameEnum from './CooFrameEnum';
+import Coo from './coo';
+var cds = require("./cds");
+var A = cds.A;
 
 // TODO : harmoniser parsing avec classe ProgressiveCat
-cds.Catalog = (function() {
-   cds.Catalog = function(options) {
+const Catalog = (function() {
+   const Catalog = function(options) {
         options = options || {};
 
         this.type = 'catalog';    	this.name = options.name || "catalog";
@@ -59,7 +69,7 @@ cds.Catalog = (function() {
                 this.displayLabel = false;
             }
         }
-    	
+
         if (this.shape instanceof Image || this.shape instanceof HTMLCanvasElement) {
             this.sourceSize = this.shape.width;
         }
@@ -67,11 +77,11 @@ cds.Catalog = (function() {
         if ($.isFunction(this.shape)) {
             this._shapeIsFunction = true;
         }
-        
-    	this.selectionColor = '#00ff00';
-    	
 
-        // create this.cacheCanvas    	
+    	this.selectionColor = '#00ff00';
+
+
+        // create this.cacheCanvas
     	// cacheCanvas permet de ne créer le path de la source qu'une fois, et de le réutiliser (cf. http://simonsarris.com/blog/427-increasing-performance-by-caching-paths-on-canvas)
         this.updateShape(options);
 
@@ -87,12 +97,12 @@ cds.Catalog = (function() {
         cacheMarkerCtx.lineWidth = 2;
         cacheMarkerCtx.strokeStyle = '#ccc';
         cacheMarkerCtx.stroke();
-        
+
 
         this.isShowing = true;
     };
-    
-    cds.Catalog.createShape = function(shapeName, color, sourceSize) {
+
+    Catalog.createShape = function(shapeName, color, sourceSize) {
         if (shapeName instanceof Image || shapeName instanceof HTMLCanvasElement) { // in this case, the shape is already created
             return shapeName;
         }
@@ -106,7 +116,7 @@ cds.Catalog = (function() {
             ctx.moveTo(sourceSize/2., 0);
             ctx.lineTo(sourceSize/2., sourceSize);
             ctx.stroke();
-            
+
             ctx.moveTo(0, sourceSize/2.);
             ctx.lineTo(sourceSize, sourceSize/2.);
             ctx.stroke();
@@ -115,7 +125,7 @@ cds.Catalog = (function() {
             ctx.moveTo(0, 0);
             ctx.lineTo(sourceSize-1, sourceSize-1);
             ctx.stroke();
-            
+
             ctx.moveTo(sourceSize-1, 0);
             ctx.lineTo(0, sourceSize-1);
             ctx.stroke();
@@ -147,11 +157,11 @@ cds.Catalog = (function() {
             ctx.lineTo(1, 1);
             ctx.stroke();
         }
-        
+
         return c;
-        
+
     };
-    
+
 
         // find RA, Dec fields among the given fields
         //
@@ -170,7 +180,7 @@ cds.Catalog = (function() {
                     if (Utils.isInt(raField) && raField<fields.length) { // raField can be given as an index
                         raFieldIdx = raField;
                         break;
-                    } 
+                    }
                     if ( (field.ID && field.ID===raField) || (field.name && field.name===raField)) {
                         raFieldIdx = l;
                         break;
@@ -183,7 +193,7 @@ cds.Catalog = (function() {
                     if (Utils.isInt(decField) && decField<fields.length) { // decField can be given as an index
                         decFieldIdx = decField;
                         break;
-                    } 
+                    }
                     if ( (field.ID && field.ID===decField) || (field.name && field.name===decField)) {
                         decFieldIdx = l;
                         break;
@@ -206,7 +216,7 @@ cds.Catalog = (function() {
                         }
                     }
                 }
-                    
+
                 if ( ! decFieldIdx) {
                     if (field.ucd) {
                         var ucd = $.trim(field.ucd.toLowerCase());
@@ -224,7 +234,7 @@ cds.Catalog = (function() {
                     var field = fields[l];
                     var name = field.name || field.ID || '';
                     name = name.toLowerCase();
-                    
+
                     if ( ! raFieldIdx) {
                         if (name.indexOf('ra')==0 || name.indexOf('_ra')==0 || name.indexOf('ra(icrs)')==0 || name.indexOf('_ra')==0 || name.indexOf('alpha')==0) {
                             raFieldIdx = l;
@@ -238,7 +248,7 @@ cds.Catalog = (function() {
                             continue;
                         }
                     }
-                    
+
                 }
             }
 
@@ -250,12 +260,12 @@ cds.Catalog = (function() {
 
             return [raFieldIdx, decFieldIdx];
         };
-        
-    
-    
+
+
+
     // return an array of Source(s) from a VOTable url
     // callback function is called each time a TABLE element has been parsed
-    cds.Catalog.parseVOTable = function(url, callback, maxNbSources, useProxy, raField, decField) {
+    Catalog.parseVOTable = function(url, callback, maxNbSources, useProxy, raField, decField) {
 
         // adapted from votable.js
         function getPrefix($xml) {
@@ -288,7 +298,7 @@ cds.Catalog = (function() {
         function doParseVOTable(xml, callback) {
             xml = xml.replace(/^\s+/g, ''); // we need to trim whitespaces at start of document
             var attributes = ["name", "ID", "ucd", "utype", "unit", "datatype", "arraysize", "width", "precision"];
-            
+
             var fields = [];
             var k = 0;
             var $xml = $($.parseXML(xml));
@@ -307,14 +317,14 @@ cds.Catalog = (function() {
                 fields.push(f);
                 k++;
             });
-                
+
             var raDecFieldIdxes = findRADecFields(fields, raField, decField);
             var raFieldIdx,  decFieldIdx;
             raFieldIdx = raDecFieldIdxes[0];
             decFieldIdx = raDecFieldIdxes[1];
 
             var sources = [];
-            
+
             var coo = new Coo();
             var ra, dec;
             $xml.find(prefix + "TR").each(function() {
@@ -341,13 +351,13 @@ cds.Catalog = (function() {
                if (maxNbSources && sources.length==maxNbSources) {
                    return false; // break the .each loop
                }
-                
+
             });
             if (callback) {
                 callback(sources);
             }
         }
-        
+
         var ajax = Utils.getAjaxObject(url, 'GET', 'text', useProxy);
         ajax.done(function(xml) {
             doParseVOTable(xml, callback);
@@ -355,7 +365,7 @@ cds.Catalog = (function() {
     };
 
     // API
-    cds.Catalog.prototype.updateShape = function(options) {
+    Catalog.prototype.updateShape = function(options) {
         options = options || {};
     	this.color = options.color || this.color || Color.getNextColor();
     	this.sourceSize = options.sourceSize || this.sourceSize || 6;
@@ -363,14 +373,14 @@ cds.Catalog = (function() {
 
         this.selectSize = this.sourceSize + 2;
 
-        this.cacheCanvas = cds.Catalog.createShape(this.shape, this.color, this.sourceSize); 
-        this.cacheSelectCanvas = cds.Catalog.createShape('square', this.selectionColor, this.selectSize);
+        this.cacheCanvas = Catalog.createShape(this.shape, this.color, this.sourceSize);
+        this.cacheSelectCanvas = Catalog.createShape('square', this.selectionColor, this.selectSize);
 
         this.reportChange();
     };
-    
+
     // API
-    cds.Catalog.prototype.addSources = function(sourcesToAdd) {
+    Catalog.prototype.addSources = function(sourcesToAdd) {
         sourcesToAdd = [].concat(sourcesToAdd); // make sure we have an array and not an individual source
     	this.sources = this.sources.concat(sourcesToAdd);
     	for (var k=0, len=sourcesToAdd.length; k<len; k++) {
@@ -385,7 +395,7 @@ cds.Catalog = (function() {
     //
     // @param columnNames: array with names of the columns
     // @array: 2D-array, each item being a 1d-array with the same number of items as columnNames
-    cds.Catalog.prototype.addSourcesAsArray = function(columnNames, array) {
+    Catalog.prototype.addSourcesAsArray = function(columnNames, array) {
         var fields = [];
         for (var colIdx=0 ; colIdx<columnNames.length; colIdx++) {
             fields.push({name: columnNames[colIdx]});
@@ -421,35 +431,35 @@ cds.Catalog = (function() {
 
         this.addSources(newSources);
     };
-    
+
     // return the current list of Source objects
-    cds.Catalog.prototype.getSources = function() {
+    Catalog.prototype.getSources = function() {
         return this.sources;
     };
-    
+
     // TODO : fonction générique traversant la liste des sources
-    cds.Catalog.prototype.selectAll = function() {
+    Catalog.prototype.selectAll = function() {
         if (! this.sources) {
             return;
         }
-        
+
         for (var k=0; k<this.sources.length; k++) {
             this.sources[k].select();
         }
     };
-    
-    cds.Catalog.prototype.deselectAll = function() {
+
+    Catalog.prototype.deselectAll = function() {
         if (! this.sources) {
             return;
         }
-        
+
         for (var k=0; k<this.sources.length; k++) {
             this.sources[k].deselect();
         }
     };
-    
+
     // return a source by index
-    cds.Catalog.prototype.getSource = function(idx) {
+    Catalog.prototype.getSource = function(idx) {
         if (idx<this.sources.length) {
             return this.sources[idx];
         }
@@ -457,18 +467,18 @@ cds.Catalog = (function() {
             return null;
         }
     };
-    
-    cds.Catalog.prototype.setView = function(view) {
+
+    Catalog.prototype.setView = function(view) {
         this.view = view;
         this.reportChange();
     };
-    
-    cds.Catalog.prototype.removeAll = cds.Catalog.prototype.clear = function() {
+
+    Catalog.prototype.removeAll = Catalog.prototype.clear = function() {
         // TODO : RAZ de l'index
         this.sources = [];
     };
-    
-    cds.Catalog.prototype.draw = function(ctx, projection, frame, width, height, largestDim, zoomFactor) {
+
+    Catalog.prototype.draw = function(ctx, projection, frame, width, height, largestDim, zoomFactor) {
         if (! this.isShowing) {
             return;
         }
@@ -482,7 +492,7 @@ cds.Catalog = (function() {
         }
         var sourcesInView = [];
  	    for (var k=0, len = this.sources.length; k<len; k++) {
-		    var inView = cds.Catalog.drawSource(this, this.sources[k], ctx, projection, frame, width, height, largestDim, zoomFactor);
+		    var inView = Catalog.drawSource(this, this.sources[k], ctx, projection, frame, width, height, largestDim, zoomFactor);
             if (inView) {
                 sourcesInView.push(this.sources[k]);
             }
@@ -501,8 +511,8 @@ cds.Catalog = (function() {
             if (! source.isSelected) {
                 continue;
             }
-            cds.Catalog.drawSourceSelection(this, source, ctx);
-            
+            Catalog.drawSourceSelection(this, source, ctx);
+
         }
         // NEEDED ?
     	//ctx.stroke();
@@ -512,14 +522,14 @@ cds.Catalog = (function() {
             ctx.fillStyle = this.labelColor;
             ctx.font = this.labelFont;
             for (var k=0, len = sourcesInView.length; k<len; k++) {
-                cds.Catalog.drawSourceLabel(this, sourcesInView[k], ctx);
+                Catalog.drawSourceLabel(this, sourcesInView[k], ctx);
             }
         }
     };
-    
-    
-    
-    cds.Catalog.drawSource = function(catalogInstance, s, ctx, projection, frame, width, height, largestDim, zoomFactor) {
+
+
+
+    Catalog.drawSource = function(catalogInstance, s, ctx, projection, frame, width, height, largestDim, zoomFactor) {
         if (! s.isShowing) {
             return false;
         }
@@ -546,7 +556,7 @@ cds.Catalog = (function() {
                     s.x = s.y = undefined;
                     return false;
                 }
-                
+
                 s.x = xyview.vx;
                 s.y = xyview.vy;
                 if (catalogInstance._shapeIsFunction) {
@@ -564,8 +574,8 @@ cds.Catalog = (function() {
                 if (s.popup) {
                     s.popup.setPosition(s.x, s.y);
                 }
-                
-                
+
+
             }
             return true;
         }
@@ -573,19 +583,19 @@ cds.Catalog = (function() {
             return false;
         }
 
-        
+
     };
-    
-    cds.Catalog.drawSourceSelection = function(catalogInstance, s, ctx) {
+
+    Catalog.drawSourceSelection = function(catalogInstance, s, ctx) {
         if (!s || !s.isShowing || !s.x || !s.y) {
             return;
         }
         var sourceSize = catalogInstance.selectSize;
-        
+
         ctx.drawImage(catalogInstance.cacheSelectCanvas, s.x-sourceSize/2, s.y-sourceSize/2);
     };
 
-    cds.Catalog.drawSourceLabel = function(catalogInstance, s, ctx) {
+    Catalog.drawSourceLabel = function(catalogInstance, s, ctx) {
         if (!s || !s.isShowing || !s.x || !s.y) {
             return;
         }
@@ -598,21 +608,21 @@ cds.Catalog = (function() {
         ctx.fillText(label, s.x, s.y);
     };
 
-    
+
     // callback function to be called when the status of one of the sources has changed
-    cds.Catalog.prototype.reportChange = function() {
+    Catalog.prototype.reportChange = function() {
         this.view && this.view.requestRedraw();
     };
-    
-    cds.Catalog.prototype.show = function() {
+
+    Catalog.prototype.show = function() {
         if (this.isShowing) {
             return;
         }
         this.isShowing = true;
         this.reportChange();
     };
-    
-    cds.Catalog.prototype.hide = function() {
+
+    Catalog.prototype.hide = function() {
         if (! this.isShowing) {
             return;
         }
@@ -624,5 +634,7 @@ cds.Catalog = (function() {
         this.reportChange();
     };
 
-    return cds.Catalog;
+    return Catalog;
 })();
+
+export default Catalog;

@@ -21,32 +21,33 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File HealpixCache
- * 
+ *
  * Author: Thomas Boch[CDS]
- * 
+ *
  *****************************************************************************/
+import HealpixIndex from './HealpixIndex';
 
 // class holding some HEALPix computations for better performances
 //
 // it is made of :
-// - a static cache for HEALPix corners at nside=8 
-// - a dynamic cache for 
-HealpixCache = (function() {
+// - a static cache for HEALPix corners at nside=8
+// - a dynamic cache for
+const HealpixCache = (function() {
 
     var HealpixCache = {};
-    
+
     HealpixCache.staticCache = {corners: {nside8: []}};
     // TODO : utilisation du dynamicCache
     HealpixCache.dynamicCache = {};
-    
+
     HealpixCache.lastNside = 8;
-    
+
     HealpixCache.hpxIdxCache = null;
-    
+
     // TODO : conserver en cache le dernier résultat ?
-    
+
     HealpixCache.init = function() {
     	// pre-compute corners position for nside=8
     	var hpxIdx = new HealpixIndex(8);
@@ -57,27 +58,28 @@ HealpixCache = (function() {
             corners =  hpxIdx.corners_nest(ipix, 1);
     		HealpixCache.staticCache.corners.nside8.push(corners);
     	}
-    	
+
     	HealpixCache.hpxIdxCache = hpxIdx;
     };
 
     HealpixCache.init();
-    
+
     HealpixCache.corners_nest = function(ipix, nside) {
-    	if (nside==8) {
+    	if (nside===8) {
     		return HealpixCache.staticCache.corners.nside8[ipix];
     	}
-    	
-    	if (nside != HealpixCache.lastNside) {
+
+    	if (nside !== HealpixCache.lastNside) {
     		HealpixCache.hpxIdxCache = new HealpixIndex(nside);
     		HealpixCache.hpxIdxCache.init();
     		HealpixCache.lastNside = nside;
     	}
-    	
+
     	return HealpixCache.hpxIdxCache.corners_nest(ipix, 1);
-    	
+
     };
-    
+
     return HealpixCache;
 })();
-	
+
+export default HealpixCache;

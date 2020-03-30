@@ -21,26 +21,29 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File Location.js
- * 
+ *
  * Author: Thomas Boch[CDS]
- * 
+ *
  *****************************************************************************/
+import $ from 'jquery';
+import CooFrameEnum from './CooFrameEnum';
+import Coo from './coo';
 
-Location = (function() {
+const Location = (function() {
     // constructor
-    Location = function(locationDiv) {
+  const Location = function(locationDiv) {
     		this.$div = $(locationDiv);
     	};
-	
+
 	Location.prototype.update = function(lon, lat, cooFrame, isViewCenterPosition) {
         isViewCenterPosition = (isViewCenterPosition && isViewCenterPosition===true) || false;
 		var coo = new Coo(lon, lat, 7);
-		if (cooFrame==CooFrameEnum.J2000) {
+		if (cooFrame===CooFrameEnum.J2000) {
             this.$div.html(coo.format('s/'));
         }
-		else if (cooFrame==CooFrameEnum.J2000d) {
+		else if (cooFrame===CooFrameEnum.J2000d) {
             this.$div.html(coo.format('d/'));
         }
         else {
@@ -49,7 +52,8 @@ Location = (function() {
 
         this.$div.toggleClass('aladin-reticleColor', isViewCenterPosition);
 	};
-	
+
 	return Location;
 })();
-	
+
+export default Location;

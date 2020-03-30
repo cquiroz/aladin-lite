@@ -21,13 +21,16 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File HiPSDefinition
- * 
+ *
  * Author: Thomas Boch [CDS]
- * 
+ *
  *****************************************************************************/
-HiPSDefinition = (function() {
+import Utils from './Utils';
+import $ from 'jquery';
+
+const HiPSDefinition = (function() {
 
     // constructor
     var HiPSDefinition = function(properties) {
@@ -325,7 +328,7 @@ HiPSDefinition = (function() {
     var listHipsProperties = []; // this variable stores our current knowledge
 
     HiPSDefinition.LOCAL_STORAGE_KEY = 'aladin:hips-list';
-    
+
     var RETRIEVAL_TIMESTAMP_KEY = '_timestamp_retrieved';
     var LAST_URL_KEY = '_last_used_url'; // URL previousy used to retrieve data from this HiPS
     // retrieve definitions previousy stored in local storage
@@ -509,14 +512,14 @@ HiPSDefinition = (function() {
 
     HiPSDefinition.findByID = function(id, callback) {
         // look first locally
-        var candidates = findByIDLocal(id);
+        var candidates = HiPSDefinition.findByIDLocal(id);
         if (candidates.length>0) {
             (typeof callback === 'function') && callback(candidates);
             return;
         }
 
         // then remotely
-        findByIDRemote(id, callback);
+        HiPSDefinition.findByIDRemote(id, callback);
     };
 
     // find a HiPSDefinition by id.
@@ -618,3 +621,4 @@ HiPSDefinition = (function() {
 
 })();
 
+export default HiPSDefinition;

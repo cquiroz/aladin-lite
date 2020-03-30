@@ -21,16 +21,19 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File Sesame.js
- * 
+ *
  * Author: Thomas Boch[CDS]
- * 
+ *
  *****************************************************************************/
+import Utils from './Utils';
+import Coo from './coo';
+import $ from 'jquery';
 
-Sesame = (function() {
-    Sesame = {};
-    
+const Sesame = (function() {
+    const Sesame = {};
+
     Sesame.cache = {};
 
     Sesame.SESAME_URL = "http://cds.u-strasbg.fr/cgi-bin/nph-sesame.jsonp";
@@ -70,13 +73,13 @@ Sesame = (function() {
            );
         }
     };
-    
+
     Sesame.resolve = function(objectName, callbackFunctionSuccess, callbackFunctionError) {
         var sesameUrl = Sesame.SESAME_URL;
         if (Utils.isHttpsContext()) {
             sesameUrl = sesameUrl.replace('http://', 'https://')
         }
-            
+
 
         $.ajax({
             url: sesameUrl ,
@@ -94,7 +97,8 @@ Sesame = (function() {
             error: callbackFunctionError
             });
     };
-    
+
     return Sesame;
 })();
 
+export default Sesame;

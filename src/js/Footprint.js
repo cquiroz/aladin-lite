@@ -21,30 +21,31 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File Footprint
- * 
+ *
  * Author: Thomas Boch[CDS]
- * 
+ *
  *****************************************************************************/
+import Utils from './Utils';
 
-Footprint = (function() {
+const Footprint = (function() {
     // constructor
-    Footprint = function(polygons) {
+    const Footprint = function(polygons) {
         this.polygons = polygons;
     	this.overlay = null;
 
         // TODO : all graphic overlays should have an id
         this.id = 'footprint-' + Utils.uuidv4();
-    	
+
     	this.isShowing = true;
     	this.isSelected = false;
     };
-    
+
     Footprint.prototype.setOverlay = function(overlay) {
         this.overlay = overlay;
     };
-    
+
     Footprint.prototype.show = function() {
         if (this.isShowing) {
             return;
@@ -54,7 +55,7 @@ Footprint = (function() {
             this.overlay.reportChange();
         }
     };
-    
+
     Footprint.prototype.hide = function() {
         if (! this.isShowing) {
             return;
@@ -77,7 +78,7 @@ Footprint = (function() {
             }));
         }
     };
-    
+
     Footprint.prototype.select = function() {
         if (this.isSelected) {
             return;
@@ -108,6 +109,8 @@ Footprint = (function() {
             this.overlay.reportChange();
         }
     };
-    
+
     return Footprint;
 })();
+
+export default Footprint;

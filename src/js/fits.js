@@ -180,7 +180,7 @@
     Parser.prototype.createDataUnit = function(header, blob) {
       var type;
       type = header.getDataType();
-      return new astro.FITS[type](header, blob);
+      return new this.astro.FITS[type](header, blob);
     };
 
     Parser.prototype.excessBytes = function(length) {
@@ -575,7 +575,9 @@
         }
         return;
       }
-      _ref = value.split(' /'), value = _ref[0], comment = _ref[1];
+      _ref = value.split(' /');
+      value = _ref[0];
+      comment = _ref[1];
       value = value.trim();
       firstByte = value[0];
       if (firstByte === "'") {
@@ -596,7 +598,9 @@
       isArray = this.arrayPattern.test(key);
       if (isArray) {
         match = this.arrayPattern.exec(key);
-        _ref = match.slice(1), baseKey = _ref[0], index = _ref[1];
+        _ref = match.slice(1);
+        baseKey = _ref[0];
+        index = _ref[1];
       }
       if (baseKey in this.verifyCard) {
         value = this.verifyCard[baseKey](value, isArray, index);
@@ -813,8 +817,8 @@
         bzero = data.bzero;
         bscale = data.bscale;
         url = data.url;
-        importScripts(url);
-        arr = _getFrame(buffer, bitpix, bzero, bscale);
+        // importScripts(url);
+        arr = Image.prototype._getFrame(buffer, bitpix, bzero, bscale);
         return postMessage(arr);
       };
       fn1 = onmessage.toString().replace('return postMessage', 'postMessage');
@@ -1335,7 +1339,9 @@
               case "COMPRESSED_DATA":
                 accessor = function(view, offset) {
                   var arr, pixels, _ref3;
-                  _ref3 = _this.getFromHeap(view, offset, descriptor), arr = _ref3[0], offset = _ref3[1];
+                  _ref3 = _this.getFromHeap(view, offset, descriptor);
+                  arr = _ref3[0];
+                  offset = _ref3[1];
                   pixels = new _this.typedArray[_this.algorithmParameters["BYTEPIX"]](_this.ztile[0]);
                   Decompress.Rice(arr, _this.algorithmParameters["BLOCKSIZE"], _this.algorithmParameters["BYTEPIX"], pixels, _this.ztile[0], Decompress.RiceSetup);
                   return [pixels, offset];
@@ -1361,7 +1367,9 @@
             if (count === 1) {
               accessor = function(view, offset) {
                 var value, _ref3;
-                _ref3 = _this.dataAccessors[descriptor](view, offset), value = _ref3[0], offset = _ref3[1];
+                _ref3 = _this.dataAccessors[descriptor](view, offset);
+                value = _ref3[0];
+                offset = _ref3[1];
                 return [value, offset];
               };
             } else {
@@ -1400,7 +1408,9 @@
                   i = count;
                   data = [];
                   while (i--) {
-                    _ref3 = _this.dataAccessors[descriptor](view, offset), value = _ref3[0], offset = _ref3[1];
+                    _ref3 = _this.dataAccessors[descriptor](view, offset);
+                    value = _ref3[0];
+                    offset = _ref3[1];
                     data.push(value);
                   }
                   return [data, offset];
@@ -1424,7 +1434,9 @@
         _ref2 = this.accessors;
         for (index = _i = 0, _len = _ref2.length; _i < _len; index = ++_i) {
           accessor = _ref2[index];
-          _ref3 = accessor(view, offset), value = _ref3[0], offset = _ref3[1];
+          _ref3 = accessor(view, offset);
+          value = _ref3[0];
+          offset = _ref3[1];
           row[this.columns[index]] = value;
         }
         rows.push(row);
@@ -1480,10 +1492,16 @@
     Rice: function(array, blocksize, bytepix, pixels, nx, setup) {
       var b, bbits, diff, fs, fsbits, fsmax, i, imax, k, lastpix, nbits, nonzeroCount, nzero, pointer, _ref2, _ref3;
       bbits = 1 << fsbits;
-      _ref2 = setup[bytepix](array), fsbits = _ref2[0], fsmax = _ref2[1], lastpix = _ref2[2], pointer = _ref2[3];
+      _ref2 = setup[bytepix](array);
+      fsbits = _ref2[0];
+      fsmax = _ref2[1];
+      lastpix = _ref2[2];
+      pointer = _ref2[3];
       nonzeroCount = new Uint8Array(256);
       nzero = 8;
-      _ref3 = [128, 255], k = _ref3[0], i = _ref3[1];
+      _ref3 = [128, 255];
+      k = _ref3[0];
+      i = _ref3[1];
       while (i >= 0) {
         while (i >= k) {
           nonzeroCount[i] = nzero;
@@ -1642,7 +1660,9 @@
         _ref2 = this.accessors;
         for (index = _i = 0, _len = _ref2.length; _i < _len; index = ++_i) {
           accessor = _ref2[index];
-          _ref3 = accessor(view, offset), value = _ref3[0], offset = _ref3[1];
+          _ref3 = accessor(view, offset);
+          value = _ref3[0];
+          offset = _ref3[1];
           row[this.columns[index]] = value;
         }
         data = row['COMPRESSED_DATA'] || row['UNCOMPRESSED_DATA'] || row['GZIP_COMPRESSED_DATA'];

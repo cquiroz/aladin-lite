@@ -22,14 +22,38 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File View.js
- * 
+ *
  * Author: Thomas Boch[CDS]
- * 
+ *
  *****************************************************************************/
+import $ from 'jquery';
+import CooFrameEnum from './CooFrameEnum';
+import Circle from './Circle';
+import CooConversion from './CooConversion';
+import CooGrid from './CooGrid';
+import Coo from './coo';
+import Utils from './Utils';
+import AladinUtils from './AladinUtils';
+import TileBuffer from './TileBuffer';
+import SpatialVector from './SpatialVector';
+import HpxImageSurvey from './HpxImageSurvey';
+import HealpixIndex from './HealpixIndex';
+import HealpixCache from './HealpixCache';
+import HealpixGrid from './HealpixGrid';
+import ProjectionEnum from './ProjectionEnum';
+import SimbadPointer from './SimbadPointer';
+import requestAnimFrame from 'raf';
+import Stats from 'stats.js';
+import Popup from './Popup';
+import {Projection} from './projection';
+import Downloader from './Downloader';
+import ColorMap from './ColorMap';
+import Footprint from './Footprint';
+import * as A from './A';
 
-View = (function() {
+const View = (function() {
 
     /** Constructor */
     function View (aladin, location, fovDiv, cooFrame, zoom) {
@@ -39,15 +63,16 @@ View = (function() {
             this.popup = new Popup(this.aladinDiv, this);
 
             this.createCanvases();
+            HealpixCache.init();
             this.location = location;
             this.fovDiv = fovDiv;
             this.mustClearCatalog = true;
             this.mustRedrawReticle = true;
-            
+
             this.mode = View.PAN;
-            
+
             this.minFOV = this.maxFOV = null; // by default, no restriction
-            
+
             this.healpixGrid = new HealpixGrid(this.imageCanvas);
             if (cooFrame) {
                 this.cooFrame = cooFrame;
@@ -55,22 +80,22 @@ View = (function() {
             else {
                 this.cooFrame = CooFrameEnum.GAL;
             }
-            
+
             var lon, lat;
             lon = lat = 0;
-            
+
             this.projectionMethod = ProjectionEnum.SIN;
             this.projection = new Projection(lon, lat);
             this.projection.setProjection(this.projectionMethod);
             this.zoomLevel = 0;
             this.zoomFactor = this.computeZoomFactor(this.zoomLevel);
-    
+
             this.viewCenter = {lon: lon, lat: lat}; // position of center of view
-            
+
             if (zoom) {
                 this.setZoom(zoom);
             }
-            
+
             // current reference image survey displayed
             this.imageSurvey = null;
             // current catalogs displayed
@@ -99,17 +124,17 @@ View = (function() {
             this.mocs = [];
             // reference to all overlay layers (= catalogs + overlays + mocs)
             this.allOverlayLayers = []
-            
-    
-            
+
+
+
             this.tileBuffer = new TileBuffer(); // tile buffer is shared across different image surveys
             this.fixLayoutDimensions();
-            
-    
+
+
             this.curNorder = 1;
             this.realNorder = 1;
             this.curOverlayNorder = 1;
-            
+
             // some variables for mouse handling
             this.dragging = false;
             this.dragx = null;
@@ -122,18 +147,18 @@ View = (function() {
                 initialFov: undefined,
                 initialDistance: undefined
             };
-    
+
             this.downloader = new Downloader(this); // the downloader object is shared across all HpxImageSurveys
             this.flagForceRedraw = false;
-    
+
             this.fadingLatestUpdate = null;
-            
+
             this.dateRequestRedraw = null;
-            
+
             this.showGrid = false; // coordinates grid
-            
+
             init(this);
-            
+
 
             // listen to window resize and reshape canvases
             this.resizeTimer = null;
@@ -157,27 +182,27 @@ View = (function() {
                 }
            }, 1000);
         };
-    
+
     // different available modes
     View.PAN = 0;
     View.SELECT = 1;
     View.TOOL_SIMBAD_POINTER = 2;
-        
-    
-    // TODO: should be put as an option at layer level    
+
+
+    // TODO: should be put as an option at layer level
     View.DRAW_SOURCES_WHILE_DRAGGING = true;
     View.DRAW_MOCS_WHILE_DRAGGING = true;
 
     View.CALLBACKS_THROTTLE_TIME_MS = 100; // minimum time between two consecutive callback calls
 
-    
+
     // (re)create needed canvases
     View.prototype.createCanvases = function() {
         var a = $(this.aladinDiv);
         a.find('.aladin-imageCanvas').remove();
         a.find('.aladin-catalogCanvas').remove();
         a.find('.aladin-reticleCanvas').remove();
-        
+
         // canvas to draw the images
         this.imageCanvas = $("<canvas class='aladin-imageCanvas'></canvas>").appendTo(this.aladinDiv)[0];
         // canvas to draw the catalogs
@@ -185,39 +210,39 @@ View = (function() {
         // canvas to draw the reticle
         this.reticleCanvas = $("<canvas class='aladin-reticleCanvas'></canvas>").appendTo(this.aladinDiv)[0];
     };
-    
-    
+
+
     // called at startup and when window is resized
     View.prototype.fixLayoutDimensions = function() {
         Utils.cssScale = undefined;
-        
+
         var computedWidth = $(this.aladinDiv).width();
         var computedHeight = $(this.aladinDiv).height();
 
         this.width = Math.max(computedWidth, 1);
         this.height = Math.max(computedHeight, 1); // this prevents many problems when div size is equal to 0
-        
-        
+
+
         this.cx = this.width/2;
         this.cy = this.height/2;
-        
+
         this.largestDim = Math.max(this.width, this.height);
         this.smallestDim = Math.min(this.width, this.height);
         this.ratio = this.largestDim/this.smallestDim;
 
-        
+
         this.mouseMoveIncrement = 160/this.largestDim;
 
         // reinitialize 2D context
         this.imageCtx = this.imageCanvas.getContext("2d");
         this.catalogCtx = this.catalogCanvas.getContext("2d");
         this.reticleCtx = this.reticleCanvas.getContext("2d");
-        
+
         this.imageCtx.canvas.width = this.width;
         this.catalogCtx.canvas.width = this.width;
         this.reticleCtx.canvas.width = this.width;
 
-        
+
         this.imageCtx.canvas.height = this.height;
         this.catalogCtx.canvas.height = this.height;
         this.reticleCtx.canvas.height = this.height;
@@ -239,7 +264,7 @@ View = (function() {
             $(this.logoDiv).css('width', '32px');
         }
 
-        
+
         this.computeNorder();
         this.requestRedraw();
     };
@@ -252,7 +277,7 @@ View = (function() {
         ctx.msImageSmoothingEnabled = enableSmoothing;
         ctx.oImageSmoothingEnabled = enableSmoothing;
     }
-    
+
 
     View.prototype.setMode = function(mode) {
         this.mode = mode;
@@ -268,7 +293,7 @@ View = (function() {
             this.setCursor('default');
         }
     };
-    
+
     View.prototype.setCursor = function(cursor) {
         if (this.reticleCanvas.style.cursor==cursor) {
             return;
@@ -279,13 +304,13 @@ View = (function() {
         this.reticleCanvas.style.cursor = cursor;
     };
 
-    
-    
+
+
     /**
      * return dataURL string corresponding to the current view
      */
     View.prototype.getCanvasDataURL = function(imgType, width, height) {
-        imgType = imgType || "image/png"; 
+        imgType = imgType || "image/png";
         var c = document.createElement('canvas');
         width = width || this.width;
         height = height || this.height;
@@ -295,7 +320,7 @@ View = (function() {
         ctx.drawImage(this.imageCanvas, 0, 0, c.width, c.height);
         ctx.drawImage(this.catalogCanvas, 0, 0, c.width, c.height);
         ctx.drawImage(this.reticleCanvas, 0, 0, c.width, c.height);
-        
+
         return c.toDataURL(imgType);
         //return c.toDataURL("image/jpeg", 0.01); // setting quality only works for JPEG (?)
     };
@@ -303,20 +328,19 @@ View = (function() {
 
     /**
      * Compute the FoV in degrees of the view and update mouseMoveIncrement
-     * 
+     *
      * @param view
      * @returns FoV (array of 2 elements : width and height) in degrees
      */
-    computeFov = function(view) {
-        var fov = doComputeFov(view, view.zoomFactor);
-        
-        
+    View.prototype.computeFov = function(view) {
+        var fov = this.doComputeFov(view, view.zoomFactor);
+
         view.mouseMoveIncrement = fov/view.imageCanvas.width;
-            
+
         return fov;
     };
-    
-    doComputeFov = function(view, zoomFactor) {
+
+    View.prototype.doComputeFov = function(view, zoomFactor) {
         // if zoom factor < 1, we view 180°
         var fov;
         if (view.zoomFactor<1) {
@@ -327,18 +351,17 @@ View = (function() {
             // to compute FoV, we first retrieve 2 points at coordinates (0, view.cy) and (width-1, view.cy)
             var xy1 = AladinUtils.viewToXy(0, view.cy, view.width, view.height, view.largestDim, zoomFactor);
             var lonlat1 = view.projection.unproject(xy1.x, xy1.y);
-            
+
             var xy2 = AladinUtils.viewToXy(view.imageCanvas.width-1, view.cy, view.width, view.height, view.largestDim, zoomFactor);
             var lonlat2 = view.projection.unproject(xy2.x, xy2.y);
-            
-            
+
             fov = new Coo(lonlat1.ra, lonlat1.dec).distance(new Coo(lonlat2.ra, lonlat2.dec));
         }
-        
+
         return fov;
     };
-    
-    updateFovDiv = function(view) {
+
+    View.prototype.updateFovDiv = function(view) {
         if (isNaN(view.fov)) {
             view.fovDiv.html("FoV:");
             return;
@@ -356,16 +379,15 @@ View = (function() {
         }
         view.fovDiv.html("FoV: " + fovStr);
     };
-    
-    
-    createListeners = function(view) {
+
+    View.prototype.createListeners = function(view) {
         var hasTouchEvents = false;
         if ('ontouchstart' in window) {
             hasTouchEvents = true;
         }
-        
+
         // various listeners
-        onDblClick = function(e) {
+        var onDblClick = function(e) {
             var xymouse = view.imageCanvas.relMouseCoords(e);
             var xy = AladinUtils.viewToXy(xymouse.x, xymouse.y, view.width, view.height, view.largestDim, view.zoomFactor);
             try {
@@ -374,9 +396,9 @@ View = (function() {
             catch(err) {
                 return;
             }
-            radec = [];
+            var radec = [];
             // convert to J2000 if needed
-            if (view.cooFrame.system==CooFrameEnum.SYSTEMS.GAL) {
+            if (view.cooFrame.system===CooFrameEnum.SYSTEMS.GAL) {
                 radec = CooConversion.GalacticToJ2000([lonlat.ra, lonlat.dec]);
             }
             else {
@@ -388,11 +410,11 @@ View = (function() {
         if (! hasTouchEvents) {
             $(view.reticleCanvas).dblclick(onDblClick);
         }
-        
-        
+
+
         $(view.reticleCanvas).bind("mousedown touchstart", function(e) {
             // zoom pinching
-            if (e.type==='touchstart' && e.originalEvent && e.originalEvent.targetTouches && e.originalEvent.targetTouches.length==2) {
+            if (e.type==='touchstart' && e.originalEvent && e.originalEvent.targetTouches && e.originalEvent.targetTouches.length===2) {
                 view.dragging = false;
 
                 view.pinchZoomParameters.isPinching = true;
@@ -419,10 +441,10 @@ View = (function() {
 
 
             view.dragging = true;
-            if (view.mode==View.PAN) {
+            if (view.mode===View.PAN) {
                 view.setCursor('move');
             }
-            else if (view.mode==View.SELECT) {
+            else if (view.mode===View.SELECT) {
                 view.selectStartCoo = {x: view.dragx, y: view.dragy};
             }
             return false; // to disable text selection
@@ -433,7 +455,7 @@ View = (function() {
             if (e.type==='touchend' && view.pinchZoomParameters.isPinching) {
                 view.pinchZoomParameters.isPinching = false;
                 view.pinchZoomParameters.initialFov = view.pinchZoomParameters.initialDistance = undefined;
-    
+
                 return;
             }
 
@@ -447,7 +469,7 @@ View = (function() {
 
                 if (wasDragging) {
                     view.realDragging = false;
-                
+
                     // call positionChanged one last time after dragging, with dragging: false
                     var posChangedFn = view.aladin.callbacksByEventName['positionChanged'];
                     if (typeof posChangedFn === 'function') {
@@ -460,9 +482,9 @@ View = (function() {
             } // end of "if (view.dragging) ... "
 
             if (selectionHasEnded) {
-                view.aladin.fire('selectend', 
+                view.aladin.fire('selectend',
                                  view.getObjectsInBBox(view.selectStartCoo.x, view.selectStartCoo.y,
-                                                       view.dragx-view.selectStartCoo.x, view.dragy-view.selectStartCoo.y));    
+                                                       view.dragx-view.selectStartCoo.x, view.dragy-view.selectStartCoo.y));
 
                 view.mustRedrawReticle = true; // pour effacer selection bounding box
                 view.requestRedraw();
@@ -609,7 +631,7 @@ View = (function() {
                             var ret = objHoveredFunction(closest[0]);
                         }
                         lastHoveredObject = closest[0];
-        
+
                     }
                     else {
                         view.setCursor('default');
@@ -632,7 +654,7 @@ View = (function() {
 
             var xoffset, yoffset;
             var pos1, pos2;
-            
+
             if (e.originalEvent && e.originalEvent.targetTouches) {
                 // ???
                 xoffset = e.originalEvent.targetTouches[0].clientX-view.dragx;
@@ -650,16 +672,16 @@ View = (function() {
                 */
                 xoffset = xymouse.x-view.dragx;
                 yoffset = xymouse.y-view.dragy;
-                
+
                 var xy1 = AladinUtils.viewToXy(xymouse.x, xymouse.y, view.width, view.height, view.largestDim, view.zoomFactor);
                 var xy2 = AladinUtils.viewToXy(view.dragx, view.dragy, view.width, view.height, view.largestDim, view.zoomFactor);
 
-                
+
                 pos1 = view.projection.unproject(xy1.x, xy1.y);
                 pos2 = view.projection.unproject(xy2.x, xy2.y);
-                
+
             }
-            
+
             // TODO : faut il faire ce test ??
 //            var distSquared = xoffset*xoffset+yoffset*yoffset;
 //            if (distSquared<3) {
@@ -677,7 +699,7 @@ View = (function() {
                 view.dragy = e.clientY;
                 */
             }
-            
+
             if (view.mode==View.SELECT) {
                   view.requestRedraw();
                   return;
@@ -690,9 +712,9 @@ View = (function() {
             */
             view.viewCenter.lon += pos2.ra -  pos1.ra;
             view.viewCenter.lat += pos2.dec - pos1.dec;
-            
 
-            
+
+
             // can not go beyond poles
             if (view.viewCenter.lat>90) {
                 view.viewCenter.lat = 90;
@@ -700,7 +722,7 @@ View = (function() {
             else if (view.viewCenter.lat < -90) {
                 view.viewCenter.lat = -90;
             }
-            
+
             // limit lon to [0, 360]
             if (view.viewCenter.lon < 0) {
                 view.viewCenter.lon = 360 + view.viewCenter.lon;
@@ -711,7 +733,7 @@ View = (function() {
             view.realDragging = true;
             view.requestRedraw();
         }); //// endof mousemove ////
-        
+
         // disable text selection on IE
         $(view.aladinDiv).onselectstart = function () { return false; }
 
@@ -725,7 +747,7 @@ View = (function() {
             // hope this won't trigger some side effects ...
             if (event.hasOwnProperty('originalEvent')) {
                 delta = -event.originalEvent.deltaY;
-            } 
+            }
             if (delta>0) {
                 level += 1;
             }
@@ -733,22 +755,22 @@ View = (function() {
                 level -= 1;
             }
             view.setZoomLevel(level);
-            
+
             return false;
         });
 
     };
-    
+
     var init = function(view) {
         var stats = new Stats();
         stats.domElement.style.top = '50px';
         if ($('#aladin-statsDiv').length>0) {
             $('#aladin-statsDiv')[0].appendChild( stats.domElement );
         }
-        
+
         view.stats = stats;
 
-        createListeners(view);
+        view.createListeners(view);
 
         view.executeCallbacksThrottled = Utils.throttle(
             function() {
@@ -764,7 +786,7 @@ View = (function() {
                 if (ra!==this.ra || dec!==this.dec) {
                     var posChangedFn = view.aladin.callbacksByEventName['positionChanged'];
                     (typeof posChangedFn === 'function') && posChangedFn({ra: ra, dec: dec, dragging: true});
-    
+
                     // finally, save ra and dec value
                     this.ra = ra;
                     this.dec = dec;
@@ -774,7 +796,7 @@ View = (function() {
                 if (fov!==this.old_fov) {
                     var fovChangedFn = view.aladin.callbacksByEventName['zoomChanged'];
                     (typeof fovChangedFn === 'function') && fovChangedFn(fov);
-    
+
                     // finally, save fov value
                     this.old_fov = fov;
                 }
@@ -787,11 +809,11 @@ View = (function() {
         view.displaySurvey = true;
         view.displayCatalog = false;
         view.displayReticle = true;
-        
+
         // initial draw
-        view.fov = computeFov(view);
-        updateFovDiv(view);
-        
+        view.fov = view.computeFov(view);
+        view.updateFovDiv(view);
+
         view.redraw();
     };
 
@@ -810,13 +832,13 @@ View = (function() {
             view.location.update(lonlat.ra, lonlat.dec, view.cooFrame, isViewCenterPosition);
         }
     }
-    
+
     View.prototype.requestRedrawAtDate = function(date) {
         this.dateRequestDraw = date;
     };
 
     /**
-     * Return the color of the lowest intensity pixel 
+     * Return the color of the lowest intensity pixel
      * in teh current color map of the current background image HiPS
      */
     View.prototype.getBackgroundColor = function() {
@@ -846,13 +868,13 @@ View = (function() {
     View.prototype.getViewParams = function() {
         var resolution = this.width > this.height ? this.fov / this.width : this.fov / this.height;
         return {
-            fov: [this.width * resolution, this.height * resolution],   
-            width: this.width,   
-            height: this.height   
+            fov: [this.width * resolution, this.height * resolution],
+            width: this.width,
+            height: this.height
         };
     };
-    
-    
+
+
 
     /**
      * redraw the whole view
@@ -862,10 +884,10 @@ View = (function() {
         requestAnimFrame(this.redraw.bind(this));
 
         var now = new Date().getTime();
-        
+
         if (this.dateRequestDraw && now>this.dateRequestDraw) {
             this.dateRequestDraw = null;
-        } 
+        }
         else if (! this.needRedraw) {
             if ( ! this.flagForceRedraw) {
                 return;
@@ -886,8 +908,8 @@ View = (function() {
         // TODO : do not need to clear if fov small enough ?
         imageCtx.clearRect(0, 0, this.imageCanvas.width, this.imageCanvas.height);
         ////////////////////////
-    
-        var bkgdColor = this.getBackgroundColor();    
+
+        var bkgdColor = this.getBackgroundColor();
         // fill with background of the same color than the first color map value (lowest intensity)
         if (this.projectionMethod==ProjectionEnum.SIN) {
             if (this.fov>=60) {
@@ -915,11 +937,11 @@ View = (function() {
             imageCtx.finish2D();
         }
 
-        
+
         this.projection.setCenter(this.viewCenter.lon, this.viewCenter.lat);
         // do we have to redo that every time? Probably not
         this.projection.setProjection(this.projectionMethod);
-    
+
 
         // ************* Draw allsky tiles (low resolution) *****************
 
@@ -958,10 +980,10 @@ View = (function() {
             }
         }
         */
-        
+
 
         // redraw overlay image survey
-        // TODO : does not work if different frames 
+        // TODO : does not work if different frames
         // TODO: use HpxImageSurvey.draw method !!
         if (this.overlayImageSurvey && this.overlayImageSurvey.isReady) {
             imageCtx.globalAlpha = this.overlayImageSurvey.getAlpha();
@@ -989,8 +1011,8 @@ View = (function() {
            imageCtx.globalAlpha = 1.0;
 
         }
-        
-        
+
+
         // redraw HEALPix grid
         if( this.displayHpxGrid) {
             var cornersXYViewMapAllsky = this.getVisibleCells(3);
@@ -1010,19 +1032,19 @@ View = (function() {
                 this.healpixGrid.redraw(imageCtx, cornersXYViewMapAllsky, this.fov, 3);
             }
         }
-        
+
         // redraw coordinates grid
         if (this.showGrid) {
             if (this.cooGrid==null) {
                 this.cooGrid = new CooGrid();
             }
-            
+
             this.cooGrid.redraw(imageCtx, this.projection, this.cooFrame, this.width, this.height, this.largestDim, this.zoomFactor, this.fov);
         }
-         
 
 
-        
+
+
         ////// 2. Draw catalogues////////
         var catalogCtx = this.catalogCtx;
 
@@ -1064,7 +1086,7 @@ View = (function() {
                 this.overlays[i].draw(overlayCtx, this.projection, this.cooFrame, this.width, this.height, this.largestDim, this.zoomFactor);
             }
         }
-        
+
 
         // draw MOCs
         var mocCtx = this.catalogCtx;
@@ -1080,7 +1102,7 @@ View = (function() {
 
 
         if (this.mode==View.SELECT) {
-            mustRedrawReticle = true;
+            var mustRedrawReticle = true;
         }
         ////// 4. Draw reticle ///////
         // TODO: reticle should be placed in a static DIV, no need to waste a canvas
@@ -1089,7 +1111,7 @@ View = (function() {
             reticleCtx.clearRect(0, 0, this.width, this.height);
         }
         if (this.displayReticle) {
-            
+
             if (! this.reticleCache) {
                 // build reticle image
                 var c = document.createElement('canvas');
@@ -1104,20 +1126,20 @@ View = (function() {
                 ctx.lineTo(s/2, s/2+2);
                 ctx.moveTo(s/2, s/2-(s/2-1));
                 ctx.lineTo(s/2, s/2-2);
-                
+
                 ctx.moveTo(s/2+(s/2-1), s/2);
                 ctx.lineTo(s/2+2,  s/2);
                 ctx.moveTo(s/2-(s/2-1), s/2);
                 ctx.lineTo(s/2-2,  s/2);
-                
+
                 ctx.stroke();
-                
+
                 this.reticleCache = c;
             }
-                
+
             reticleCtx.drawImage(this.reticleCache, this.width/2 - this.reticleCache.width/2, this.height/2 - this.reticleCache.height/2);
-            
-            
+
+
             this.mustRedrawReticle = false;
         }
 
@@ -1132,17 +1154,17 @@ View = (function() {
                     imageCtx.stroke();
         }
 
-        
+
         // draw selection box
         if (this.mode==View.SELECT && this.dragging) {
             reticleCtx.fillStyle = "rgba(100, 240, 110, 0.25)";
             var w = this.dragx - this.selectStartCoo.x;
             var h =  this.dragy - this.selectStartCoo.y;
-            
+
             reticleCtx.fillRect(this.selectStartCoo.x, this.selectStartCoo.y, w, h);
         }
-        
-        
+
+
          // TODO : is this the right way?
          if (saveNeedRedraw==this.needRedraw) {
              this.needRedraw = false;
@@ -1152,7 +1174,7 @@ View = (function() {
         // objects lookup
         if (!this.dragging) {
             this.updateObjectsLookup();
-        } 
+        }
 
         // execute 'positionChanged' and 'zoomChanged' callbacks
         this.executeCallbacksThrottled();
@@ -1162,7 +1184,7 @@ View = (function() {
     View.prototype.forceRedraw = function() {
         this.flagForceRedraw = true;
     };
-    
+
     View.prototype.refreshProgressiveCats = function() {
         if (! this.catalogs) {
             return;
@@ -1227,14 +1249,14 @@ View = (function() {
             pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0, true, true);
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
-            ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);
+            var ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);
             pixList.unshift(ipixCenter);
 
         }
 
         return pixList;
     };
-    
+
     // TODO: optimize this method !!
     View.prototype.getVisibleCells = function(norder, frameSurvey) {
         if (! frameSurvey && this.imageSurvey) {
@@ -1246,7 +1268,7 @@ View = (function() {
         var nside = Math.pow(2, norder); // TODO : to be modified
         var npix = HealpixIndex.nside2Npix(nside);
         var ipixCenter = null;
-        
+
         // build list of pixels
         // TODO: pixList can be obtained from getVisiblePixList
         var pixList;
@@ -1266,7 +1288,7 @@ View = (function() {
             var lonlat = [];
             if (frameSurvey && frameSurvey.system != this.cooFrame.system) {
                 if (frameSurvey.system==CooFrameEnum.SYSTEMS.J2000) {
-                    lonlat = CooConversion.GalacticToJ2000([radec.ra, radec.dec]); 
+                    lonlat = CooConversion.GalacticToJ2000([radec.ra, radec.dec]);
                 }
                 else if (frameSurvey.system==CooFrameEnum.SYSTEMS.GAL) {
                     lonlat = CooConversion.J2000ToGalactic([radec.ra, radec.dec]);
@@ -1292,39 +1314,40 @@ View = (function() {
             else {
                 radius *= 1.1;
             }
-            
-            
-                
+
+
+
             pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0, true, true);
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
             ipixCenter = hpxIdx.ang2pix_nest(polar.theta, polar.phi);
             pixList.unshift(ipixCenter);
         }
-        
-        
+
+
         var ipix;
         var lon, lat;
         for (var ipixIdx=0, len=pixList.length; ipixIdx<len; ipixIdx++) {
             ipix = pixList[ipixIdx];
-            if (ipix==ipixCenter && ipixIdx>0) { 
+            if (ipix==ipixCenter && ipixIdx>0) {
                 continue;
             }
             var cornersXYView = [];
-            corners = HealpixCache.corners_nest(ipix, nside);
+            var corners = HealpixCache.corners_nest(ipix, nside);
 
             for (var k=0; k<4; k++) {
+              if (corners)
                 spVec.setXYZ(corners[k].x, corners[k].y, corners[k].z);
-                
+
                 // need for frame transformation ?
                 if (frameSurvey && frameSurvey.system != this.cooFrame.system) {
                     if (frameSurvey.system == CooFrameEnum.SYSTEMS.J2000) {
-                        var radec = CooConversion.J2000ToGalactic([spVec.ra(), spVec.dec()]); 
+                        var radec = CooConversion.J2000ToGalactic([spVec.ra(), spVec.dec()]);
                         lon = radec[0];
                         lat = radec[1];
                     }
                     else if (frameSurvey.system == CooFrameEnum.SYSTEMS.GAL) {
-                        var radec = CooConversion.GalacticToJ2000([spVec.ra(), spVec.dec()]); 
+                        var radec = CooConversion.GalacticToJ2000([spVec.ra(), spVec.dec()]);
                         lon = radec[0];
                         lat = radec[1];
                     }
@@ -1333,7 +1356,7 @@ View = (function() {
                     lon = spVec.ra();
                     lat = spVec.dec();
                 }
-                
+
                 cornersXY[k] = this.projection.project(lon, lat);
             }
 
@@ -1341,8 +1364,6 @@ View = (function() {
             if (cornersXY[0] == null ||  cornersXY[1] == null  ||  cornersXY[2] == null ||  cornersXY[3] == null ) {
                 continue;
             }
-
-
 
             for (var k=0; k<4; k++) {
                 cornersXYView[k] = AladinUtils.xyToView(cornersXY[k].X, cornersXY[k].Y, this.width, this.height, this.largestDim, this.zoomFactor);
@@ -1386,39 +1407,39 @@ View = (function() {
                     continue;
                 }
             }
-            
+
             cornersXYView.ipix = ipix;
             cells.push(cornersXYView);
         }
-        
+
         return cells;
     };
-    
-    
-    
+
+
+
     // get position in view for a given HEALPix cell
     View.prototype.getPositionsInView = function(ipix, norder) {
         var cornersXY = [];
         var lon, lat;
         var spVec = new SpatialVector();
         var nside = Math.pow(2, norder); // TODO : to be modified
-        
-        
+
+
         var cornersXYView = [];  // will be returned
         var corners = HealpixCache.corners_nest(ipix, nside);
 
         for (var k=0; k<4; k++) {
             spVec.setXYZ(corners[k].x, corners[k].y, corners[k].z);
-                
+
             // need for frame transformation ?
             if (this.imageSurvey && this.imageSurvey.cooFrame.system != this.cooFrame.system) {
                 if (this.imageSurvey.cooFrame.system == CooFrameEnum.SYSTEMS.J2000) {
-                    var radec = CooConversion.J2000ToGalactic([spVec.ra(), spVec.dec()]); 
+                    var radec = CooConversion.J2000ToGalactic([spVec.ra(), spVec.dec()]);
                     lon = radec[0];
                     lat = radec[1];
                 }
                 else if (this.imageSurvey.cooFrame.system == CooFrameEnum.SYSTEMS.GAL) {
-                    var radec = CooConversion.GalacticToJ2000([spVec.ra(), spVec.dec()]); 
+                    var radec = CooConversion.GalacticToJ2000([spVec.ra(), spVec.dec()]);
                     lon = radec[0];
                     lat = radec[1];
                 }
@@ -1427,10 +1448,10 @@ View = (function() {
                 lon = spVec.ra();
                 lat = spVec.dec();
             }
-                
+
             cornersXY[k] = this.projection.project(lon, lat);
         }
-        
+
         if (cornersXY[0] == null ||  cornersXY[1] == null  ||  cornersXY[2] == null ||  cornersXY[3] == null ) {
             return null;
         }
@@ -1442,8 +1463,8 @@ View = (function() {
 
         return cornersXYView;
     };
-    
-    
+
+
     View.prototype.computeZoomFactor = function(level) {
         if (level>0) {
             return AladinUtils.getZoomFactorForAngle(180/Math.pow(1.15, level), this.projectionMethod);
@@ -1452,29 +1473,29 @@ View = (function() {
             return 1 + 0.1*level;
         }
     };
-    
+
     View.prototype.setZoom = function(fovDegrees) {
-        if (fovDegrees<0 || (fovDegrees>180 && ! this.aladin.options.allowFullZoomout)) {
+        if (fovDegrees<0 || fovDegrees>180) {
             return;
         }
         var zoomLevel = Math.log(180/fovDegrees)/Math.log(1.15);
         this.setZoomLevel(zoomLevel);
     };
-    
+
     View.prototype.setShowGrid = function(showGrid) {
         this.showGrid = showGrid;
         this.requestRedraw();
     };
 
-    
+
     View.prototype.setZoomLevel = function(level) {
         if (this.minFOV || this.maxFOV) {
-            var newFov = doComputeFov(this, this.computeZoomFactor(Math.max(-2, level)));
+            var newFov = this.doComputeFov(this, this.computeZoomFactor(Math.max(-2, level)));
             if (this.maxFOV && newFov>this.maxFOV  ||  this.minFOV && newFov<this.minFOV)  {
                 return;
             }
         }
-        
+
         if (this.projectionMethod==ProjectionEnum.SIN) {
             if (this.aladin.options.allowFullZoomout === true) {
                 // special case for Andreas Wicenec until I fix the problem
@@ -1495,31 +1516,31 @@ View = (function() {
         else {
             this.zoomLevel = Math.max(-7, level); // TODO : canvas freezes in firefox when max level is small
         }
-        
-        
+
+
         this.zoomFactor = this.computeZoomFactor(this.zoomLevel);
-        
+
         var oldFov = this.fov;
-        this.fov = computeFov(this);
+        this.fov = this.computeFov(this);
 
 
         // TODO: event/listener should be better
-        updateFovDiv(this);
-        
+        this.updateFovDiv(this);
+
         this.computeNorder();
-        
+
         this.forceRedraw();
         this.requestRedraw();
-        
+
         // on avertit les catalogues progressifs
         if (! this.debounceProgCatOnZoom) {
             var self = this;
             this.debounceProgCatOnZoom = Utils.debounce(function() {self.refreshProgressiveCats();}, 300);
         }
         this.debounceProgCatOnZoom();
-        
+
     };
-    
+
     /**
      * compute and set the norder corresponding to the current view resolution
      */
@@ -1531,12 +1552,12 @@ View = (function() {
         norder = Math.max(norder, 1);
         this.realNorder = norder;
 
-            
+
         // here, we force norder to 3 (otherwise, the display is "blurry" for too long when zooming in)
         if (this.fov<=50 && norder<=2) {
             norder = 3;
         }
-           
+
 
         // that happens if we do not wish to display tiles coming from Allsky.[jpg|png]
         if (this.imageSurvey && norder<=2 && this.imageSurvey.minOrder>2) {
@@ -1557,30 +1578,30 @@ View = (function() {
         if (overlayNorder>HealpixIndex.ORDER_MAX) {
             overlayNorder = HealpixIndex.ORDER_MAX;
         }
-            
+
         this.curNorder = norder;
         this.curOverlayNorder = overlayNorder;
     };
-    
+
     View.prototype.untaintCanvases = function() {
         this.createCanvases();
-        createListeners(this);
+        this.createListeners(this);
         this.fixLayoutDimensions();
     };
-    
+
     View.prototype.setOverlayImageSurvey = function(overlayImageSurvey, callback) {
         if (! overlayImageSurvey) {
             this.overlayImageSurvey = null;
             this.requestRedraw();
             return;
         }
-        
+
         // reset canvas to "untaint" canvas if needed
         // we test if the previous base image layer was using CORS or not
         if ($.support.cors && this.overlayImageSurvey && ! this.overlayImageSurvey.useCors) {
             this.untaintCanvases();
         }
-        
+
         var newOverlayImageSurvey;
         if (typeof overlayImageSurvey == "string") {
             newOverlayImageSurvey = HpxImageSurvey.getSurveyFromId(overlayImageSurvey);
@@ -1593,7 +1614,7 @@ View = (function() {
         }
         newOverlayImageSurvey.isReady = false;
         this.overlayImageSurvey = newOverlayImageSurvey;
-        
+
         var self = this;
         newOverlayImageSurvey.init(this, function() {
             //self.imageSurvey = newImageSurvey;
@@ -1601,7 +1622,7 @@ View = (function() {
             newOverlayImageSurvey.isReady = true;
             self.requestRedraw();
             self.updateObjectsLookup();
-            
+
             if (callback) {
                 callback();
             }
@@ -1614,20 +1635,20 @@ View = (function() {
             unknownSurveyId = undefined;
         }
     }
-    
+
     var unknownSurveyId = undefined;
     // @param imageSurvey : HpxImageSurvey object or image survey identifier
     View.prototype.setImageSurvey = function(imageSurvey, callback) {
         if (! imageSurvey) {
             return;
         }
-        
+
         // reset canvas to "untaint" canvas if needed
         // we test if the previous base image layer was using CORS or not
         if ($.support.cors && this.imageSurvey && ! this.imageSurvey.useCors) {
             this.untaintCanvases();
         }
-        
+
         var newImageSurvey;
         if (typeof imageSurvey == "string") {
             newImageSurvey = HpxImageSurvey.getSurveyFromId(imageSurvey);
@@ -1639,19 +1660,23 @@ View = (function() {
         else {
             newImageSurvey = imageSurvey;
         }
- 
-        // TODO: this is a temporary fix for issue https://github.com/cds-astro/aladin-lite/issues/16
-        // ideally, instead of creating a new TileBuffer object,
-        //  one should remove from TileBuffer all Tile objects still in the download queue qui sont encore dans la download queue
-        this.tileBuffer = new TileBuffer();
+
+        // do not touch the tileBuffer if we load the exact same HiPS (in that case, should we stop here??)
+        if (newImageSurvey && this.imageSurvey && newImageSurvey.hasOwnProperty('id') && this.imageSurvey.hasOwnProperty('id') && newImageSurvey.id==this.imageSurvey.id) {
+            // do nothing
+        }
+        else {
+            // buffer reset
+            this.tileBuffer = new TileBuffer();
+        }
 
         this.downloader.emptyQueue();
-        
+
         newImageSurvey.isReady = false;
         this.imageSurvey = newImageSurvey;
 
-        this.projection.reverseLongitude(this.imageSurvey.longitudeReversed); 
-        
+        this.projection.reverseLongitude(this.imageSurvey.longitudeReversed);
+
         var self = this;
         newImageSurvey.init(this, function() {
             //self.imageSurvey = newImageSurvey;
@@ -1659,17 +1684,17 @@ View = (function() {
             newImageSurvey.isReady = true;
             self.requestRedraw();
             self.updateObjectsLookup();
-            
+
             if (callback) {
                 callback();
             }
         });
     };
-    
+
     View.prototype.requestRedraw = function() {
         this.needRedraw = true;
     };
-    
+
     View.prototype.changeProjection = function(projectionMethod) {
         this.projectionMethod = projectionMethod;
         this.requestRedraw();
@@ -1682,12 +1707,12 @@ View = (function() {
         if (this.cooFrame.system == CooFrameEnum.SYSTEMS.GAL && this.cooFrame.system != oldCooFrame.system) {
             var lb = CooConversion.J2000ToGalactic([this.viewCenter.lon, this.viewCenter.lat]);
             this.viewCenter.lon = lb[0];
-            this.viewCenter.lat = lb[1]; 
+            this.viewCenter.lat = lb[1];
         }
         else if (this.cooFrame.system == CooFrameEnum.SYSTEMS.J2000 && this.cooFrame.system != oldCooFrame.system) {
             var radec = CooConversion.GalacticToJ2000([this.viewCenter.lon, this.viewCenter.lat]);
             this.viewCenter.lon = radec[0];
-            this.viewCenter.lat = radec[1]; 
+            this.viewCenter.lat = radec[1];
         }
 
         this.location.update(this.viewCenter.lon, this.viewCenter.lat, this.cooFrame, true);
@@ -1699,13 +1724,13 @@ View = (function() {
         this.displayHpxGrid = show;
         this.requestRedraw();
     };
-    
+
     View.prototype.showSurvey = function(show) {
         this.displaySurvey = show;
 
         this.requestRedraw();
     };
-    
+
     View.prototype.showCatalog = function(show) {
         this.displayCatalog = show;
 
@@ -1714,7 +1739,7 @@ View = (function() {
         }
         this.requestRedraw();
     };
-    
+
     View.prototype.showReticle = function(show) {
         this.displayReticle = show;
 
@@ -1792,14 +1817,14 @@ View = (function() {
         this.allOverlayLayers.push(overlay);
         overlay.setView(this);
     };
-    
+
     View.prototype.addMOC = function(moc) {
         moc.name = this.makeUniqLayerName(moc.name);
         this.mocs.push(moc);
         this.allOverlayLayers.push(moc);
         moc.setView(this);
     };
-    
+
     View.prototype.getObjectsInBBox = function(x, y, w, h) {
         if (w<0) {
             x = x+w;
@@ -1830,10 +1855,10 @@ View = (function() {
             }
         }
         return objList;
-        
+
     };
 
-    // update objLookup, lookup table 
+    // update objLookup, lookup table
     View.prototype.updateObjectsLookup = function() {
         this.objLookup = [];
 
@@ -1861,9 +1886,9 @@ View = (function() {
                         this.objLookup[x][y] = [];
                     }
                     this.objLookup[x][y].push(s);
-                }       
-            }           
-        }     
+                }
+            }
+        }
     };
 
     // return closest object within a radius of maxRadius pixels. maxRadius is an integer
@@ -1873,8 +1898,6 @@ View = (function() {
         var overlay;
         var canvas=this.catalogCanvas;
         var ctx = canvas.getContext("2d");
-        // this makes footprint selection easier as the catch-zone is larger
-        ctx.lineWidth = 6;
 
         if (this.overlays) {
             for (var k=0; k<this.overlays.length; k++) {
@@ -1961,6 +1984,8 @@ View = (function() {
         }
         return null;
     };
-    
+
     return View;
 })();
+
+export default View;

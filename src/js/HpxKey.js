@@ -21,22 +21,32 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File HpxKey
  * This class represents a HEALPix cell
- * 
+ *
  * Author: Thomas Boch[CDS]
- * 
+ *
  *****************************************************************************/
+import Tile from './Tile';
+import SpatialVector from './SpatialVector';
+import HealpixCache from './HealpixCache';
+import AladinUtils from './AladinUtils';
+import CooFrameEnum from './CooFrameEnum';
+import CooConversion from './CooConversion';
+import HpxImageSurvey from './HpxImageSurvey';
 
-HpxKey = (function() {
+const MAX_PARENTE = 4;
+const M = 280*280;
+const N = 150*150;
+const RAP=0.7;
 
-    "use strict";
+export default class HpxKey {
 
     /** Constructor
-     *  
+     *
      */
-    var HpxKey = function(norder, npix, hips, width, height, dx, dy, allskyTexture, allskyTextureSize) {
+    constructor(norder, npix, hips, width, height, dx, dy, allskyTexture, allskyTextureSize) {
         this.norder = norder;
         this.npix = npix;
 
@@ -56,201 +66,194 @@ HpxKey = (function() {
 
         this.parente = 0; // if this key comes from an ancestor, length of the filiation
 
-        this.children = null; 
+        this.children = null;
         this.ancestor = null; // ancestor having the pixels
     }
 
     // "static" methods
-    HpxKey.createHpxKeyfromAncestor = function(father, childNb) {
+    static createHpxKeyfromAncestor = function(father, childNb) {
         var hpxKey = new HpxKey(father.norder+1, father.npix*4 + childNb, father.hips, father.width/2, father.height/2,
-                                childNb==2 || childNb==3 ? father.dx+father.width/2 : father.dx, childNb==1 || childNb==3 ? father.dy+father.height/2 : father.dy, father.allskyTexture, father.allskyTextureSize);
+                                childNb===2 || childNb===3 ? father.dx+father.width/2 : father.dx, childNb===1 || childNb===3 ? father.dy+father.height/2 : father.dy, father.allskyTexture, father.allskyTextureSize);
         hpxKey.parente = father.parente + 1;
         hpxKey.ancestor = father.ancestor || father;
 
 
         return hpxKey;
-    };
-
-    var MAX_PARENTE = 4;
-
-    HpxKey.prototype = {
-
-        draw: function(ctx, view) {
-//console.log('Drawing ', this.norder, this.npix);
-            var n = 0; // number of traced triangles
-            var corners = this.getProjViewCorners(view);
-
-            if (corners==null) {
-                return 0;
-            }
-     
-
-            var now = new Date().getTime();
-            var updateNeededTiles = this.ancestor==null && this.norder>=3 && (now-this.hips.lastUpdateDateNeededTiles) > 0.1;
-
-            try {
-                if (isTooLarge(corners)) {
-//console.log('too large');
-                    var m = this.drawChildren(ctx, view, MAX_PARENTE);
-
-                    // Si aucun sous-losange n'a pu être dessiné, je trace tout de même le père
-                    if( m>0 ) {
-                        return m;
-                    }
-                }
-            }
-            catch(e) {
-                return 0;
-            }
+    }
 
 
-            // actual drawing
-            var norder = this.ancestor==null ? this.norder : this.ancestor.norder;
-            var npix = this.ancestor==null ? this.npix : this.ancestor.npix;
+    draw(ctx, view) {
+      //console.log('Drawing ', this.norder, this.npix);
+      var n = 0; // number of traced triangles
+      var corners = this.getProjViewCorners(view);
 
-            //console.log(corners);
-            //corners = AladinUtils.grow2(corners, 1); // grow by 1 pixel in each direction
-            //console.log(corners);
-            var url = this.hips.getTileURL(norder, npix);
-            var tile = this.hips.tileBuffer.getTile(url);
-            if (tile && Tile.isImageOk(tile.img) || this.allskyTexture) {
-                if (!this.allskyTexture && !this.hips.tileSize) {
-                    this.hips.tileSize = tile.img.width;
-                }
-                var img = this.allskyTexture || tile.img;
-                var w = this.allskyTextureSize || img.width;
-                if (this.parente) {
-                    w = w / Math.pow(2, this.parente);
-                } 
-
-                this.hips.drawOneTile2(ctx, img, corners, w, null, this.dx, this.dy, true, norder);
-                n += 2;
-            }
-            else if (updateNeededTiles && ! tile) {
-                tile = this.hips.tileBuffer.addTile(url);
-                view.downloader.requestDownload(tile.img, tile.url, this.hips.useCors);
-                this.hips.lastUpdateDateNeededTiles = now;
-                view.requestRedrawAtDate(now+HpxImageSurvey.UPDATE_NEEDED_TILES_DELAY+10);
-            }
+      if (corners==null) {
+        return 0;
+      }
 
 
-            return n;
-        },
+      var now = new Date().getTime();
+      var updateNeededTiles = this.ancestor==null && this.norder>=3 && (now-this.hips.lastUpdateDateNeededTiles) > 0.1;
 
-        drawChildren: function(ctx, view, maxParente) {
-            var n=0;
-            var limitOrder = 13; // corresponds to NSIDE=8192, current HealpixJS limit
-            if ( this.width>1 && this.norder<limitOrder && this.parente<maxParente ) {
-                var children = this.getChildren();
-                if ( children!=null ) {
-                    for ( var i=0; i<4; i++ ) {
-//console.log(i);
-                        if ( children[i]!=null ) {
-                            n += children[i].draw(ctx , view, maxParente);
-                        }
-                    }
-                }
-            }
+      try {
+        if (HpxKey._isTooLarge(corners)) {
+          //console.log('too large');
+          var m = this.drawChildren(ctx, view, MAX_PARENTE);
 
-            return n;
-        },
+          // Si aucun sous-losange n'a pu être dessiné, je trace tout de même le père
+          if( m>0 ) {
+            return m;
+          }
+        }
+      }
+      catch(e) {
+        return 0;
+      }
 
 
-        // returns the 4 HpxKey children
-        getChildren: function() {
-            if (this.children!=null) {
-                return this.children;
-            }
+      // actual drawing
+      var norder = this.ancestor==null ? this.norder : this.ancestor.norder;
+      var npix = this.ancestor==null ? this.npix : this.ancestor.npix;
 
-            var children = [];
-            for ( var childNb=0; childNb<4; childNb++ ) {
-                var child = HpxKey.createHpxKeyfromAncestor(this, childNb);
-                children[childNb] = child;
-            }
-            this.children = children;
-
-
-            return this.children;
-        },
-
-
-
-        getProjViewCorners: function(view) {
-            var cornersXY = [];
-            var cornersXYView = [];
-            var spVec = new SpatialVector();
-
-            corners = HealpixCache.corners_nest(this.npix, this.nside);
-
-            var lon, lat;
-            for (var k=0; k<4; k++) {
-                spVec.setXYZ(corners[k].x, corners[k].y, corners[k].z);
-
-                // need for frame transformation ?
-                if (this.frame.system != view.cooFrame.system) {
-                    if (this.frame.system == CooFrameEnum.SYSTEMS.J2000) {
-                        var radec = CooConversion.J2000ToGalactic([spVec.ra(), spVec.dec()]);
-                        lon = radec[0];
-                        lat = radec[1];
-                    }
-                    else if (this.frame.system == CooFrameEnum.SYSTEMS.GAL) {
-                        var radec = CooConversion.GalacticToJ2000([spVec.ra(), spVec.dec()]);
-                        lon = radec[0];
-                        lat = radec[1];
-                    }
-                }
-                else {
-                    lon = spVec.ra();
-                    lat = spVec.dec();
-                }
-                cornersXY[k] = view.projection.project(lon, lat);
-            }
-
-
-            if (cornersXY[0] == null ||  cornersXY[1] == null  ||  cornersXY[2] == null ||  cornersXY[3] == null ) {
-                return null;
-            }
-
-
-
-            for (var k=0; k<4; k++) {
-                cornersXYView[k] = AladinUtils.xyToView(cornersXY[k].X, cornersXY[k].Y, view.width, view.height, view.largestDim, view.zoomFactor);
-            }
-
-            return cornersXYView;
+      //console.log(corners);
+      //corners = AladinUtils.grow2(corners, 1); // grow by 1 pixel in each direction
+      //console.log(corners);
+      var url = this.hips.getTileURL(norder, npix);
+      var tile = this.hips.tileBuffer.getTile(url);
+      if (tile && Tile.isImageOk(tile.img) || this.allskyTexture) {
+        if (!this.allskyTexture && !this.hips.tileSize) {
+          this.hips.tileSize = tile.img.width;
+        }
+        var img = this.allskyTexture || tile.img;
+        var w = this.allskyTextureSize || img.width;
+        if (this.parente) {
+          w = w / Math.pow(2, this.parente);
         }
 
-    } // end of HpxKey.prototype
+        this.hips.drawOneTile2(ctx, img, corners, w, null, this.dx, this.dy, true, norder);
+        n += 2;
+      }
+      else if (updateNeededTiles && ! tile) {
+        tile = this.hips.tileBuffer.addTile(url);
+        view.downloader.requestDownload(tile.img, tile.url, this.hips.useCors);
+        this.hips.lastUpdateDateNeededTiles = now;
+        view.requestRedrawAtDate(now+HpxImageSurvey.UPDATE_NEEDED_TILES_DELAY+10);
+      }
+
+
+      return n;
+    }
+
+    drawChildren(ctx, view, maxParente) {
+      var n=0;
+      var limitOrder = 13; // corresponds to NSIDE=8192, current HealpixJS limit
+      if ( this.width>1 && this.norder<limitOrder && this.parente<maxParente ) {
+        var children = this.getChildren();
+        if ( children!=null ) {
+          for ( var i=0; i<4; i++ ) {
+            //console.log(i);
+            if ( children[i]!=null ) {
+              n += children[i].draw(ctx , view, maxParente);
+            }
+          }
+        }
+      }
+
+      return n;
+    }
+
+
+    // returns the 4 HpxKey children
+    getChildren() {
+      if (this.children!=null) {
+        return this.children;
+      }
+
+      var children = [];
+      for ( var childNb=0; childNb<4; childNb++ ) {
+        var child = HpxKey.createHpxKeyfromAncestor(this, childNb);
+        children[childNb] = child;
+      }
+      this.children = children;
+
+
+      return this.children;
+    }
+
+
+
+    getProjViewCorners(view) {
+      var cornersXY = [];
+      var cornersXYView = [];
+      var spVec = new SpatialVector();
+
+      var corners = HealpixCache.corners_nest(this.npix, this.nside);
+
+      var lon, lat;
+      for (var k=0; k<4; k++) {
+        spVec.setXYZ(corners[k].x, corners[k].y, corners[k].z);
+
+        // need for frame transformation ?
+        if (this.frame.system != view.cooFrame.system) {
+          if (this.frame.system == CooFrameEnum.SYSTEMS.J2000) {
+            var radec = CooConversion.J2000ToGalactic([spVec.ra(), spVec.dec()]);
+            lon = radec[0];
+            lat = radec[1];
+          }
+          else if (this.frame.system == CooFrameEnum.SYSTEMS.GAL) {
+            var radec = CooConversion.GalacticToJ2000([spVec.ra(), spVec.dec()]);
+            lon = radec[0];
+            lat = radec[1];
+          }
+        }
+        else {
+          lon = spVec.ra();
+          lat = spVec.dec();
+        }
+        cornersXY[k] = view.projection.project(lon, lat);
+      }
+
+
+      if (cornersXY[0] == null ||  cornersXY[1] == null  ||  cornersXY[2] == null ||  cornersXY[3] == null ) {
+        return null;
+      }
+
+
+
+      for (var k=0; k<4; k++) {
+        cornersXYView[k] = AladinUtils.xyToView(cornersXY[k].X, cornersXY[k].Y, view.width, view.height, view.largestDim, view.zoomFactor);
+      }
+
+      return cornersXYView;
+    }
+
+  // end of HpxKey.prototype
 
 
 
 
     /** Returns the squared distance for points in array c at indexes g and d
      */
-    var dist = function(c, g, d) {
+    static _dist(c, g, d) {
         var dx=c[g].vx-c[d].vx;
         var dy=c[g].vy-c[d].vy;
         return  dx*dx + dy*dy;
     }
 
 
-    var M = 280*280;
-    var N = 150*150;
-    var RAP=0.7;
-
     /** Returns true if the HEALPix rhomb described by its 4 corners (array c)
      * is too large to be drawn in one pass ==> need to be subdivided */
-    var isTooLarge = function(c) {
+    static _isTooLarge(c) {
 
         var d1,d2;
-        if ( (d1=dist(c,0,2))>M || (d2=dist(c,2,1))>M ) {
+        if ( (d1=HpxKey._dist(c,0,2))>M || (d2=HpxKey._dist(c,2,1))>M ) {
             return true;
         }
         if ( d1==0 || d2==0 ) {
             throw "Rhomb error";
         }
-        var diag1 = dist(c,0,3);
-        var diag2 = dist(c,1,2);
+        var diag1 = HpxKey._dist(c,0,3);
+        var diag2 = HpxKey._dist(c,1,2);
         if ( diag2==0 || diag2==0 ) {
             throw "Rhomb error";
         }
@@ -260,8 +263,5 @@ HpxKey = (function() {
     }
 
 
-    return HpxKey;
-
-})();
-
+};
 

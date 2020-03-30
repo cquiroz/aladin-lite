@@ -21,26 +21,32 @@
 
 /******************************************************************************
  * Aladin Lite project
- * 
+ *
  * File ProgressiveCat.js
- * 
+ *
  * Author: Thomas Boch[CDS]
- * 
+ *
  *****************************************************************************/
+import Utils from './Utils';
+import CooFrameEnum from './CooFrameEnum';
+import Color from './Color';
+import Coo from './coo';
+import $ from 'jquery';
+import cds from './cds';
 
 // TODO: index sources according to their HEALPix ipix
 // TODO : merge parsing with class Catalog
-ProgressiveCat = (function() {
-    
+const ProgressiveCat = (function() {
+
     // TODO : test if CORS support. If no, need to pass through a proxy
     // currently, we suppose CORS is supported
-    
+
     // constructor
-    ProgressiveCat = function(rootUrl, frameStr, maxOrder, options) {
+    const ProgressiveCat = function(rootUrl, frameStr, maxOrder, options) {
         options = options || {};
 
         this.type = 'progressivecat';
-        
+
         this.rootUrl = rootUrl; // TODO: method to sanitize rootURL (absolute, no duplicate slashes, remove end slash if existing)
         // fast fix for HTTPS support --> will work for all HiPS served by CDS
         if (Utils.isHttpsContext() && ( /u-strasbg.fr/i.test(this.rootUrl) || /unistra.fr/i.test(this.rootUrl)  ) ) {
@@ -59,13 +65,10 @@ ProgressiveCat = (function() {
         this.selectSize = this.sourceSize + 2;
         this.selectionColor = '#00ff00'; // TODO: to be merged with Catalog
 
-        // allows for filtering of sources
-        this.filterFn = options.filter || undefined; // TODO: do the same for catalog
-
 
         this.onClick = options.onClick || undefined; // TODO: inherit from catalog
 
-        
+
 
         // we cache the list of sources in each healpix tile. Key of the cache is norder+'-'+npix
         this.sourcesCache = new Utils.LRUCache(100);
@@ -98,12 +101,12 @@ ProgressiveCat = (function() {
                     var idx = line.indexOf('=');
                     var propName  = $.trim(line.substring(0, idx));
                     var propValue = $.trim(line.substring(idx + 1));
-                    
+
                     props[propName] = propValue;
                 }
-    
+
                 successCallback(props);
-                
+
             },
             error: function(err) { // TODO : which parameters should we put in the error callback
                 errorCallback && errorCallback(err);
@@ -113,7 +116,7 @@ ProgressiveCat = (function() {
 
 
 
-        
+
     };
 
     function getFields(instance, xml) {
@@ -129,12 +132,12 @@ ProgressiveCat = (function() {
                 if ($(this).attr(attribute)) {
                     f[attribute] = $(this).attr(attribute);
                 }
-                
+
             }
             if ( ! f.ID) {
                 f.ID = "col_" + k;
             }
-            
+
             if (!instance.keyRa && f.ucd && (f.ucd.indexOf('pos.eq.ra')==0 || f.ucd.indexOf('POS_EQ_RA')==0)) {
                 if (f.name) {
                     instance.keyRa = f.name;
@@ -151,7 +154,7 @@ ProgressiveCat = (function() {
                     instance.keyDec = f.ID;
                 }
             }
-            
+
             fields.push(f);
             k++;
         });
@@ -164,7 +167,7 @@ ProgressiveCat = (function() {
         if (!instance.keyRa || ! instance.keyDec) {
             return [];
         }
-        lines = csv.split('\n');
+        var lines = csv.split('\n');
         var mesureKeys = [];
         for (var k=0; k<fields.length; k++) {
             if (fields[k].name) {
@@ -174,7 +177,7 @@ ProgressiveCat = (function() {
                 mesureKeys.push(fields[k].ID);
             }
         }
-        
+
 
         var sources = [];
         var coo = new Coo();
@@ -233,7 +236,7 @@ ProgressiveCat = (function() {
             }
         },
 
-        updateShape: cds.Catalog.prototype.updateShape,
+        // updateShape: cds.Catalog.prototype.updateShape,
 
         _loadMetadata: function() {
             var self = this;
@@ -341,7 +344,7 @@ ProgressiveCat = (function() {
             this.drawSources(this.order1Sources, ctx, projection, frame, width, height, largestDim, zoomFactor);
             this.drawSources(this.order2Sources, ctx, projection, frame, width, height, largestDim, zoomFactor);
             this.drawSources(this.order3Sources, ctx, projection, frame, width, height, largestDim, zoomFactor);
-            
+
             if (!this.tilesInView) {
                 return;
             }
@@ -354,29 +357,22 @@ ProgressiveCat = (function() {
                     this.drawSources(sources, ctx, projection, frame, width, height, largestDim, zoomFactor);
                 }
             }
-            
-            
-            
+
+
+
         },
         drawSources: function(sources, ctx, projection, frame, width, height, largestDim, zoomFactor) {
             if (! sources) {
                 return;
             }
-            var s;
             for (var k=0, len = sources.length; k<len; k++) {
-                s = sources[k];
-                if (!this.filterFn || this.filterFn(s)) {
-                    cds.Catalog.drawSource(this, s, ctx, projection, frame, width, height, largestDim, zoomFactor);
-                }
+                cds.Catalog.drawSource(this, sources[k], ctx, projection, frame, width, height, largestDim, zoomFactor);
             }
             for (var k=0, len = sources.length; k<len; k++) {
-                s = sources[k];
-                if (! s.isSelected) {
+                if (! sources[k].isSelected) {
                     continue;
                 }
-                if (!this.filterFn || this.filterFn(s)) {
-                    cds.Catalog.drawSourceSelection(this, s, ctx);
-                }
+                cds.Catalog.drawSourceSelection(this, sources[k], ctx);
             }
         },
 
@@ -402,12 +398,12 @@ ProgressiveCat = (function() {
                     }
                 }
             }
-            
+
             return ret;
         },
 
 
-        
+
         deselectAll: function() {
             if (this.order1Sources) {
                 for (var k=0; k<this.order1Sources.length; k++) {
@@ -427,7 +423,7 @@ ProgressiveCat = (function() {
                 }
             }
             var keys = this.sourcesCache.keys();
-            for (key in keys) {
+            for (var key in keys) {
                 if ( ! this.sourcesCache[key]) {
                     continue;
                 }
@@ -456,18 +452,18 @@ ProgressiveCat = (function() {
         reportChange: function() {
             this.view.requestRedraw();
         },
-        
+
         getTileURL: function(norder, npix) {
             var dirIdx = Math.floor(npix/10000)*10000;
             return this.rootUrl + "/" + "Norder" + norder + "/Dir" + dirIdx + "/Npix" + npix + ".tsv";
         },
-    
+
         loadNeededTiles: function() {
             if ( ! this.isShowing) {
                 return;
             }
             this.tilesInView = [];
-            
+
             var norder = this.view.realNorder;
             if (norder>this.maxOrder) {
                 norder = this.maxOrder;
@@ -485,13 +481,13 @@ ProgressiveCat = (function() {
                         ipixList.push(ipix);
                     }
                 }
-                
+
                 // load needed tiles
                 for (var i=0; i<ipixList.length; i++) {
                     this.tilesInView.push([curOrder, ipixList[i]]);
                 }
             }
-            
+
             var t, key;
             var self = this;
             for (var k=0; k<this.tilesInView.length; k++) {
@@ -526,11 +522,12 @@ ProgressiveCat = (function() {
         reportChange: function() { // TODO: to be shared with Catalog
             this.view && this.view.requestRedraw();
         }
-    
+
 
     }; // END OF .prototype functions
-    
-    
+
+
     return ProgressiveCat;
 })();
-    
+
+export default ProgressiveCat

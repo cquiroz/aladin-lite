@@ -3,7 +3,7 @@
 //=================================
 
 // Class AstroMath having 'static' methods
-function AstroMath() {}
+export default function AstroMath() {}
 
 // Constant for conversion Degrees => Radians (rad = deg*AstroMath.D2R)
 AstroMath.D2R = Math.PI/180.0;
@@ -22,7 +22,7 @@ AstroMath.sign = function(x) { return x > 0 ? 1 : (x < 0 ? -1 : 0 ); };
  * @returns the cosine of the angle
  */
 AstroMath.cosd = function(x) {
-	if (x % 90 == 0) {
+	if ((x % 90) === 0) {
 		var i = Math.abs(Math.floor(x / 90 + 0.5)) % 4;
 		switch (i) {
 			case 0:	return 1;
@@ -62,11 +62,11 @@ AstroMath.tand = function(x) {
 	var resid;
 
 	resid = x % 360;
-	if (resid == 0 || Math.abs(resid) == 180) {
+	if (resid === 0 || Math.abs(resid) === 180) {
 		return 0;
-	} else if (resid == 45 || resid == 225) {
+	} else if (resid === 45 || resid === 225) {
 		return 1;
-	} else if (resid == -135 || resid == -315) {
+	} else if (resid === -135 || resid === -315) {
 		return -1
 	}
 
@@ -101,9 +101,9 @@ AstroMath.atand = function(x) { return Math.atan(x)*AstroMath.R2D; };
  * @return the angle in radians
  */
 AstroMath.atan2 = function(y,x) {
-	if (y != 0.0) {
+	if (y !== 0.0) {
 		var sgny = AstroMath.sign(y);
-		if (x != 0.0) {
+		if (x !== 0.0) {
 			var phi = Math.atan(Math.abs(y/x));
 			if (x > 0.0) return phi*sgny;
 			else if (x < 0) return (Math.PI-phi)*sgny;
@@ -111,7 +111,7 @@ AstroMath.atan2 = function(y,x) {
 	} else {
 		return x > 0.0 ? 0.0 : (x < 0 ? Math.PI : 0.0/0.0);
 	}
-}  
+}
 
 /**
  * Function atan2d(y,x)
@@ -178,7 +178,7 @@ AstroMath.atanh = function(x) {
 /**
  * Computation of sin(x)/x
  *	@param x in degrees.
- * For small arguments x <= 0.001, use approximation 
+ * For small arguments x <= 0.001, use approximation
  */
 AstroMath.sinc = function(x) {
 	var ax = Math.abs(x);
@@ -204,7 +204,7 @@ AstroMath.asinc = function(x) {
 	var y;
 
 	if (ax <= 0.001) {
-		ax *= ax; 
+		ax *= ax;
 		y = 1 + ax*(6.0 + ax*(9.0/20.0))/6.0;
 	} else {
 		y = Math.asin(ax)/ax;	// ???? radians ???
@@ -287,3 +287,4 @@ AstroMath.displayMatrix = function(m) {
 
 	return str;
 }
+
