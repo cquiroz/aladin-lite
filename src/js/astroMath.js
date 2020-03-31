@@ -29,6 +29,7 @@ AstroMath.cosd = function(x) {
 			case 1:	return 0;
 			case 2:	return -1;
 			case 3:	return 0;
+      default: return 0;
 		}
 	}
 	return Math.cos(x*AstroMath.D2R);
@@ -47,6 +48,7 @@ AstroMath.sind = function(x) {
 			case 1:	return 0;
 			case 2:	return -1;
 			case 3:	return 0;
+      default: return 0;
 		}
 	}
 
@@ -269,7 +271,7 @@ AstroMath.displayMatrix = function(m) {
 	var nbrows = m.length;
 	// Max column count
 	var nbcols = 0
-	for (var i=0; i<nbrows; i++) {
+	for (let i=0; i<nbrows; i++) {
 		if (m[i].length > nbcols) nbcols = m[i].length;
 	}
 	var str = '<table>\n';

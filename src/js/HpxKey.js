@@ -120,7 +120,7 @@ export default class HpxKey {
       //console.log(corners);
       var url = this.hips.getTileURL(norder, npix);
       var tile = this.hips.tileBuffer.getTile(url);
-      if (tile && Tile.isImageOk(tile.img) || this.allskyTexture) {
+      if ((tile && Tile.isImageOk(tile.img)) || this.allskyTexture) {
         if (!this.allskyTexture && !this.hips.tileSize) {
           this.hips.tileSize = tile.img.width;
         }
@@ -190,18 +190,18 @@ export default class HpxKey {
       var corners = HealpixCache.corners_nest(this.npix, this.nside);
 
       var lon, lat;
-      for (var k=0; k<4; k++) {
+      for (let k=0; k<4; k++) {
         spVec.setXYZ(corners[k].x, corners[k].y, corners[k].z);
 
         // need for frame transformation ?
-        if (this.frame.system != view.cooFrame.system) {
-          if (this.frame.system == CooFrameEnum.SYSTEMS.J2000) {
-            var radec = CooConversion.J2000ToGalactic([spVec.ra(), spVec.dec()]);
+        if (this.frame.system !== view.cooFrame.system) {
+          if (this.frame.system === CooFrameEnum.SYSTEMS.J2000) {
+            let radec = CooConversion.J2000ToGalactic([spVec.ra(), spVec.dec()]);
             lon = radec[0];
             lat = radec[1];
           }
-          else if (this.frame.system == CooFrameEnum.SYSTEMS.GAL) {
-            var radec = CooConversion.GalacticToJ2000([spVec.ra(), spVec.dec()]);
+          else if (this.frame.system === CooFrameEnum.SYSTEMS.GAL) {
+            let radec = CooConversion.GalacticToJ2000([spVec.ra(), spVec.dec()]);
             lon = radec[0];
             lat = radec[1];
           }
@@ -220,7 +220,7 @@ export default class HpxKey {
 
 
 
-      for (var k=0; k<4; k++) {
+      for (let k=0; k<4; k++) {
         cornersXYView[k] = AladinUtils.xyToView(cornersXY[k].X, cornersXY[k].Y, view.width, view.height, view.largestDim, view.zoomFactor);
       }
 
@@ -249,13 +249,13 @@ export default class HpxKey {
         if ( (d1=HpxKey._dist(c,0,2))>M || (d2=HpxKey._dist(c,2,1))>M ) {
             return true;
         }
-        if ( d1==0 || d2==0 ) {
-            throw "Rhomb error";
+        if ( d1===0 || d2===0 ) {
+            throw new Error("Rhomb error");
         }
         var diag1 = HpxKey._dist(c,0,3);
         var diag2 = HpxKey._dist(c,1,2);
-        if ( diag2==0 || diag2==0 ) {
-            throw "Rhomb error";
+        if ( diag2===0 || diag2===0 ) {
+            throw new Error("Rhomb error");
         }
         var rap = diag2>diag1 ? diag1/diag2 : diag2/diag1;
 

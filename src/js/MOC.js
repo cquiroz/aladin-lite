@@ -9,10 +9,7 @@
  *
  *****************************************************************************/
 import Color from './Color';
-import ColorMap from './ColorMap';
-import Coo from './coo';
 import Utils from './Utils';
-import ProjectionEnum from './ProjectionEnum';
 import Aladin from './Aladin';
 import AladinUtils from './AladinUtils';
 import CooConversion from './CooConversion';
@@ -71,12 +68,12 @@ const MOC = (function() {
     MOC.prototype._removeDuplicatesFromIndexes = function() {
         var a, aDedup;
         for (var k=0; k<768; k++) {
-            for (var key in this._highResIndexOrder3[k]) {
+            for (let key in this._highResIndexOrder3[k]) {
                 a = this._highResIndexOrder3[k][key];
                 aDedup = uniq(a);
                 this._highResIndexOrder3[k][key] = aDedup;
             }
-            for (var key in this._lowResIndexOrder3[k]) {
+            for (let key in this._lowResIndexOrder3[k]) {
                 a = this._lowResIndexOrder3[k][key];
                 aDedup = uniq(a);
                 this._lowResIndexOrder3[k][key] = aDedup;
@@ -105,9 +102,9 @@ const MOC = (function() {
             }
             this._highResIndexOrder3[ipixOrder3][order].push(ipix);
 
-            var degradedOrder = MOC.LOWRES_MAXORDER;
-            var degradedIpix  = Math.floor(ipix / Math.pow(4, (order - degradedOrder)));
-            var degradedIpixOrder3 = Math.floor( degradedIpix * Math.pow(4, (3 - degradedOrder)) );
+            let degradedOrder = MOC.LOWRES_MAXORDER;
+            let degradedIpix  = Math.floor(ipix / Math.pow(4, (order - degradedOrder)));
+            let degradedIpixOrder3 = Math.floor( degradedIpix * Math.pow(4, (3 - degradedOrder)) );
             if (! (degradedOrder in this._lowResIndexOrder3[degradedIpixOrder3])) {
                 this._lowResIndexOrder3[degradedIpixOrder3][degradedOrder]= [];
             }
@@ -116,9 +113,9 @@ const MOC = (function() {
         // 3. if order > HIGHRES_MAXORDER , degrade ipix for low res and high res cells
         else {
             // low res cells
-            var degradedOrder = MOC.LOWRES_MAXORDER;
-            var degradedIpix  = Math.floor(ipix / Math.pow(4, (order - degradedOrder)));
-            var degradedIpixOrder3 = Math.floor(degradedIpix * Math.pow(4, (3 - degradedOrder)) );
+            let degradedOrder = MOC.LOWRES_MAXORDER;
+            let degradedIpix  = Math.floor(ipix / Math.pow(4, (order - degradedOrder)));
+            let degradedIpixOrder3 = Math.floor(degradedIpix * Math.pow(4, (3 - degradedOrder)) );
             if (! (degradedOrder in this._lowResIndexOrder3[degradedIpixOrder3])) {
                 this._lowResIndexOrder3[degradedIpixOrder3][degradedOrder]= [];
             }
@@ -128,7 +125,7 @@ const MOC = (function() {
             // high res cells
             degradedOrder = MOC.HIGHRES_MAXORDER;
             degradedIpix  = Math.floor(ipix / Math.pow(4, (order - degradedOrder)));
-            var degradedIpixOrder3 = Math.floor(degradedIpix * Math.pow(4, (3 - degradedOrder)) );
+            degradedIpixOrder3 = Math.floor(degradedIpix * Math.pow(4, (3 - degradedOrder)) );
             if (! (degradedOrder in this._highResIndexOrder3[degradedIpixOrder3])) {
                 this._highResIndexOrder3[degradedIpixOrder3][degradedOrder]= [];
             }
@@ -183,7 +180,7 @@ const MOC = (function() {
             try {
                 // A zero-length hdus array might mean the served URL does not have CORS header
                 // --> let's try again through the proxy
-                if (this.hdus.length == 0) {
+                if (this.hdus.length === 0) {
                     if (self.proxyCalled !== true) {
                         self.proxyCalled = true;
                         var proxiedURL = Aladin.JSONP_PROXY + '?url=' + encodeURIComponent(self.dataURL);
@@ -268,7 +265,7 @@ const MOC = (function() {
     MOC.prototype._drawCells = function(ctx, mocCellsIdxOrder3, fov, projection, viewFrame, surveyFrame, width, height, largestDim, zoomFactor) {
         ctx.lineWidth = this.lineWidth;
         // if opacity==1, we draw solid lines, else we fill each HEALPix cell
-        if (this.opacity==1) {
+        if (this.opacity===1) {
             ctx.strokeStyle = this.color;
         }
         else {
@@ -280,8 +277,8 @@ const MOC = (function() {
         ctx.beginPath();
 
         var orderedKeys = [];
-        for (var k=0; k<768; k++) {
-            var mocCells = mocCellsIdxOrder3[k];
+        for (let k=0; k<768; k++) {
+            let mocCells = mocCellsIdxOrder3[k];
             for (var key in mocCells) {
                 orderedKeys.push(parseInt(key));
             }
@@ -289,20 +286,19 @@ const MOC = (function() {
         orderedKeys.sort(function(a, b) {return a - b;});
         var norderMax = orderedKeys[orderedKeys.length-1];
 
-        var nside, xyCorners, ipix;
+        let nside, xyCorners, ipix;
         var potentialVisibleHpxCellsOrder3 = this.view.getVisiblePixList(3, CooFrameEnum.J2000);
         var visibleHpxCellsOrder3 = [];
         // let's test first all potential visible cells and keep only the one with a projection inside the view
-        for (var k=0; k<potentialVisibleHpxCellsOrder3.length; k++) {
-            var ipix = potentialVisibleHpxCellsOrder3[k];
+        for (let k=0; k<potentialVisibleHpxCellsOrder3.length; k++) {
+            let ipix = potentialVisibleHpxCellsOrder3[k];
             xyCorners = getXYCorners(8, ipix, viewFrame, surveyFrame, width, height, largestDim, zoomFactor, projection);
             if (xyCorners) {
                 visibleHpxCellsOrder3.push(ipix);
             }
         }
 
-        var counter = 0;
-        var mocCells;
+        let mocCells;
         for (var norder=0; norder<=norderMax; norder++) {
             nside = 1 << norder;
 
@@ -314,7 +310,7 @@ const MOC = (function() {
                 }
 
                 if (norder<=3) {
-                    for (var j=0; j<mocCells[norder].length; j++) {
+                    for (let j=0; j<mocCells[norder].length; j++) {
                         ipix = mocCells[norder][j];
                         var factor = Math.pow(4, (3-norder));
                         var startIpix = ipix * factor;
@@ -328,9 +324,9 @@ const MOC = (function() {
                     }
                 }
                 else {
-                    for (var j=0; j<mocCells[norder].length; j++) {
+                    for (let j=0; j<mocCells[norder].length; j++) {
                         ipix = mocCells[norder][j];
-                        var parentIpixOrder3 = Math.floor(ipix/Math.pow(4, norder-3));
+                        // let parentIpixOrder3 = Math.floor(ipix/Math.pow(4, norder-3));
                         xyCorners = getXYCorners(nside, ipix, viewFrame, surveyFrame, width, height, largestDim, zoomFactor, projection);
                         if (xyCorners) {
                             drawCorners(ctx, xyCorners);
@@ -341,7 +337,7 @@ const MOC = (function() {
         }
 
 
-        if (this.opacity==1) {
+        if (this.opacity===1) {
             ctx.stroke();
         }
         else {
@@ -385,20 +381,20 @@ const MOC = (function() {
         var spVec = _spVec;
 
         var corners = HealpixCache.corners_nest(ipix, nside);
-      var lon = 0
-      var lat = 0
-        for (var k=0; k<4; k++) {
+      let lon = 0
+      let lat = 0
+        for (let k=0; k<4; k++) {
             spVec.setXYZ(corners[k].x, corners[k].y, corners[k].z);
 
             // need for frame transformation ?
-            if (surveyFrame && surveyFrame.system != viewFrame.system) {
-                if (surveyFrame.system == CooFrameEnum.SYSTEMS.J2000) {
-                    var radec = CooConversion.J2000ToGalactic([spVec.ra(), spVec.dec()]);
+            if (surveyFrame && surveyFrame.system !== viewFrame.system) {
+                if (surveyFrame.system === CooFrameEnum.SYSTEMS.J2000) {
+                    let radec = CooConversion.J2000ToGalactic([spVec.ra(), spVec.dec()]);
                     lon = radec[0];
                     lat = radec[1];
                 }
-                else if (surveyFrame.system == CooFrameEnum.SYSTEMS.GAL) {
-                    var radec = CooConversion.GalacticToJ2000([spVec.ra(), spVec.dec()]);
+                else if (surveyFrame.system === CooFrameEnum.SYSTEMS.GAL) {
+                    let radec = CooConversion.GalacticToJ2000([spVec.ra(), spVec.dec()]);
                     lon = radec[0];
                     lat = radec[1];
                 }
@@ -416,11 +412,11 @@ const MOC = (function() {
             return null;
         }
 
-        for (var k=0; k<4; k++) {
+        for (let k=0; k<4; k++) {
             cornersXYView[k] = AladinUtils.xyToView(cornersXY[k].X, cornersXY[k].Y, width, height, largestDim, zoomFactor);
         }
 
-        var indulge = 10;
+        // var indulge = 10;
         // detect pixels outside view. Could be improved !
         // we minimize here the number of cells returned
         if( cornersXYView[0].vx<0 && cornersXYView[1].vx<0 && cornersXYView[2].vx<0 &&cornersXYView[3].vx<0) {
@@ -474,12 +470,12 @@ const MOC = (function() {
         }
 
         // first look for large HEALPix cells (order<3)
-        for (var ipixOrder3=0; ipixOrder3<768; ipixOrder3++) {
-            var mocCells = this._highResIndexOrder3[ipixOrder3];
-            for (var order in mocCells) {
+        for (let ipixOrder3=0; ipixOrder3<768; ipixOrder3++) {
+            let mocCells = this._highResIndexOrder3[ipixOrder3];
+            for (let order in mocCells) {
                 if (order<3) {
-                    for (var k=mocCells[order].length; k>=0; k--) {
-                        if (ipixMapByOrder[order] == mocCells[order][k]) {
+                    for (let k=mocCells[order].length; k>=0; k--) {
+                        if (ipixMapByOrder[order] === mocCells[order][k]) {
                             return true;
                         }
                     }
@@ -488,11 +484,11 @@ const MOC = (function() {
         }
 
         // look for finer cells
-        var ipixOrder3 = ipixMapByOrder[3];
-        var mocCells = this._highResIndexOrder3[ipixOrder3];
-        for (var order in mocCells) {
-            for (var k=mocCells[order].length; k>=0; k--) {
-                if (ipixMapByOrder[order] == mocCells[order][k]) {
+        let ipixOrder3 = ipixMapByOrder[3];
+        let mocCells = this._highResIndexOrder3[ipixOrder3];
+        for (let order in mocCells) {
+            for (let k=mocCells[order].length; k>=0; k--) {
+                if (ipixMapByOrder[order] === mocCells[order][k]) {
                     return true;
                 }
             }

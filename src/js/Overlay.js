@@ -182,7 +182,7 @@ const Overlay = (function() {
         ctx.lineWidth = this.lineWidth;
     	ctx.beginPath();
     	var xyviews = [];
-    	for (var k=0, len = this.overlays.length; k<len; k++) {
+    	for (let k=0, len = this.overlays.length; k<len; k++) {
     		xyviews.push(this.drawFootprint(this.overlays[k], ctx, projection, frame, width, height, largestDim, zoomFactor));
     	}
         ctx.stroke();
@@ -190,7 +190,7 @@ const Overlay = (function() {
     	// selection drawing
         ctx.strokeStyle= Overlay.increaseBrightness(this.color, 50);
         ctx.beginPath();
-        for (var k=0, len = this.overlays.length; k<len; k++) {
+        for (let k=0, len = this.overlays.length; k<len; k++) {
             if (! this.overlays[k].isSelected) {
                 continue;
             }
@@ -200,7 +200,7 @@ const Overlay = (function() {
     	ctx.stroke();
 
         // 2. Circle and polylines drawing
-    	for (var k=0; k<this.overlay_items.length; k++) {
+    	for (let k=0; k<this.overlay_items.length; k++) {
     	    this.overlay_items[k].draw(ctx, projection, frame, width, height, largestDim, zoomFactor);
     	}
     };
@@ -210,7 +210,7 @@ const Overlay = (function() {
         hex = hex.replace(/^\s*#|\s*$/g, '');
 
         // convert 3 char codes --> 6, e.g. `E0F` --> `EE00FF`
-        if(hex.length == 3){
+        if(hex.length === 3){
             hex = hex.replace(/(.)/g, '$1$1');
         }
 
@@ -235,7 +235,7 @@ const Overlay = (function() {
         // for
             for (var k=0, len=radecArray.length; k<len; k++) {
                 var xy;
-                if (frame.system != CooFrameEnum.SYSTEMS.J2000) {
+                if (frame.system !== CooFrameEnum.SYSTEMS.J2000) {
                     var lonlat = CooConversion.J2000ToGalactic([radecArray[k][0], radecArray[k][1]]);
                     xy = projection.project(lonlat[0], lonlat[1]);
                 }
@@ -254,7 +254,7 @@ const Overlay = (function() {
 
             if (show) {
                 ctx.moveTo(xyviewArray[0].vx, xyviewArray[0].vy);
-                for (var k=1, len=xyviewArray.length; k<len; k++) {
+                for (let k=1, len=xyviewArray.length; k<len; k++) {
                     ctx.lineTo(xyviewArray[k].vx, xyviewArray[k].vy);
                 }
             }

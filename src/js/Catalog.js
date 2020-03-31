@@ -111,7 +111,7 @@ const Catalog = (function() {
         ctx.beginPath();
         ctx.strokeStyle = color;
         ctx.lineWidth = 2.0;
-        if (shapeName=="plus") {
+        if (shapeName==="plus") {
             ctx.moveTo(sourceSize/2., 0);
             ctx.lineTo(sourceSize/2., sourceSize);
             ctx.stroke();
@@ -120,7 +120,7 @@ const Catalog = (function() {
             ctx.lineTo(sourceSize, sourceSize/2.);
             ctx.stroke();
         }
-        else if (shapeName=="cross") {
+        else if (shapeName==="cross") {
             ctx.moveTo(0, 0);
             ctx.lineTo(sourceSize-1, sourceSize-1);
             ctx.stroke();
@@ -129,7 +129,7 @@ const Catalog = (function() {
             ctx.lineTo(0, sourceSize-1);
             ctx.stroke();
         }
-        else if (shapeName=="rhomb") {
+        else if (shapeName==="rhomb") {
             ctx.moveTo(sourceSize/2, 0);
             ctx.lineTo(0, sourceSize/2);
             ctx.lineTo(sourceSize/2, sourceSize);
@@ -137,14 +137,14 @@ const Catalog = (function() {
             ctx.lineTo(sourceSize/2, 0);
             ctx.stroke();
         }
-        else if (shapeName=="triangle") {
+        else if (shapeName==="triangle") {
             ctx.moveTo(sourceSize/2, 0);
             ctx.lineTo(0, sourceSize-1);
             ctx.lineTo(sourceSize-1, sourceSize-1);
             ctx.lineTo(sourceSize/2, 0);
             ctx.stroke();
         }
-        else if (shapeName=="circle") {
+        else if (shapeName==="circle") {
             ctx.arc(sourceSize/2, sourceSize/2, sourceSize/2 - 1, 0, 2*Math.PI, true);
             ctx.stroke();
         }
@@ -174,8 +174,8 @@ const Catalog = (function() {
 
             // first, look if RA/DEC fields have been already given
             if (raField) { // ID or name of RA field given at catalogue creation
-                for (var l=0, len=fields.length; l<len; l++) {
-                    var field = fields[l];
+                for (let l=0, len=fields.length; l<len; l++) {
+                    let field = fields[l];
                     if (Utils.isInt(raField) && raField<fields.length) { // raField can be given as an index
                         raFieldIdx = raField;
                         break;
@@ -187,8 +187,8 @@ const Catalog = (function() {
                 }
             }
             if (decField) { // ID or name of dec field given at catalogue creation
-                for (var l=0, len=fields.length; l<len; l++) {
-                    var field = fields[l];
+                for (let l=0, len=fields.length; l<len; l++) {
+                    let field = fields[l];
                     if (Utils.isInt(decField) && decField<fields.length) { // decField can be given as an index
                         decFieldIdx = decField;
                         break;
@@ -200,16 +200,16 @@ const Catalog = (function() {
                 }
             }
             // if not already given, let's guess position columns on the basis of UCDs
-            for (var l=0, len=fields.length; l<len; l++) {
+            for (let l=0, len=fields.length; l<len; l++) {
                 if (raFieldIdx!=null && decFieldIdx!=null) {
                     break;
                 }
 
-                var field = fields[l];
+                let field = fields[l];
                 if ( ! raFieldIdx) {
                     if (field.ucd) {
-                        var ucd = $.trim(field.ucd.toLowerCase());
-                        if (ucd.indexOf('pos.eq.ra')==0 || ucd.indexOf('pos_eq_ra')==0) {
+                        let ucd = $.trim(field.ucd.toLowerCase());
+                        if (ucd.indexOf('pos.eq.ra')===0 || ucd.indexOf('pos_eq_ra')===0) {
                             raFieldIdx = l;
                             continue;
                         }
@@ -218,8 +218,8 @@ const Catalog = (function() {
 
                 if ( ! decFieldIdx) {
                     if (field.ucd) {
-                        var ucd = $.trim(field.ucd.toLowerCase());
-                        if (ucd.indexOf('pos.eq.dec')==0 || ucd.indexOf('pos_eq_dec')==0) {
+                        let ucd = $.trim(field.ucd.toLowerCase());
+                        if (ucd.indexOf('pos.eq.dec')===0 || ucd.indexOf('pos_eq_dec')===0) {
                             decFieldIdx = l;
                             continue;
                         }
@@ -229,20 +229,20 @@ const Catalog = (function() {
 
             // still not found ? try some common names for RA and Dec columns
             if (raFieldIdx==null && decFieldIdx==null) {
-                for (var l=0, len=fields.length; l<len; l++) {
-                    var field = fields[l];
+                for (let l=0, len=fields.length; l<len; l++) {
+                    let field = fields[l];
                     var name = field.name || field.ID || '';
                     name = name.toLowerCase();
 
                     if ( ! raFieldIdx) {
-                        if (name.indexOf('ra')==0 || name.indexOf('_ra')==0 || name.indexOf('ra(icrs)')==0 || name.indexOf('_ra')==0 || name.indexOf('alpha')==0) {
+                        if (name.indexOf('ra')===0 || name.indexOf('_ra')===0 || name.indexOf('ra(icrs)')===0 || name.indexOf('_ra')===0 || name.indexOf('alpha')===0) {
                             raFieldIdx = l;
                             continue;
                         }
                     }
 
                     if ( ! decFieldIdx) {
-                        if (name.indexOf('dej2000')==0 || name.indexOf('_dej2000')==0 || name.indexOf('de')==0 || name.indexOf('de(icrs)')==0 || name.indexOf('_de')==0 || name.indexOf('delta')==0) {
+                        if (name.indexOf('dej2000')===0 || name.indexOf('_dej2000')===0 || name.indexOf('de')===0 || name.indexOf('de(icrs)')===0 || name.indexOf('_de')===0 || name.indexOf('delta')===0) {
                             decFieldIdx = l;
                             continue;
                         }
@@ -277,7 +277,7 @@ const Catalog = (function() {
                 // Select all data in the document
                 prefix = $xml.find("*").first();
 
-                if (prefix.length==0) {
+                if (prefix.length===0) {
                     return '';
                 }
 
@@ -347,7 +347,7 @@ const Catalog = (function() {
                    dec = coo.lat;
                }
                sources.push(new Source(ra, dec, mesures));
-               if (maxNbSources && sources.length==maxNbSources) {
+               if (maxNbSources && sources.length===maxNbSources) {
                    return false; // break the .each loop
                }
 
@@ -396,7 +396,7 @@ const Catalog = (function() {
     // @array: 2D-array, each item being a 1d-array with the same number of items as columnNames
     Catalog.prototype.addSourcesAsArray = function(columnNames, array) {
         var fields = [];
-        for (var colIdx=0 ; colIdx<columnNames.length; colIdx++) {
+        for (let colIdx=0 ; colIdx<columnNames.length; colIdx++) {
             fields.push({name: columnNames[colIdx]});
         }
         var raDecFieldIdxes = findRADecFields(fields, this.raField, this.decField);
@@ -421,7 +421,7 @@ const Catalog = (function() {
                }
 
             dataDict = {};
-            for (var colIdx=0 ; colIdx<columnNames.length; colIdx++) {
+            for (let colIdx=0 ; colIdx<columnNames.length; colIdx++) {
                 dataDict[columnNames[colIdx]] = row[colIdx];
             }
 
@@ -490,7 +490,7 @@ const Catalog = (function() {
             ctx.save();
         }
         var sourcesInView = [];
- 	    for (var k=0, len = this.sources.length; k<len; k++) {
+ 	    for (let k=0, len = this.sources.length; k<len; k++) {
 		    var inView = Catalog.drawSource(this, this.sources[k], ctx, projection, frame, width, height, largestDim, zoomFactor);
             if (inView) {
                 sourcesInView.push(this.sources[k]);
@@ -505,7 +505,7 @@ const Catalog = (function() {
         ctx.strokeStyle= this.selectionColor;
         //ctx.beginPath();
         var source;
-        for (var k=0, len = sourcesInView.length; k<len; k++) {
+        for (let k=0, len = sourcesInView.length; k<len; k++) {
             source = sourcesInView[k];
             if (! source.isSelected) {
                 continue;
@@ -520,7 +520,7 @@ const Catalog = (function() {
         if (this.displayLabel) {
             ctx.fillStyle = this.labelColor;
             ctx.font = this.labelFont;
-            for (var k=0, len = sourcesInView.length; k<len; k++) {
+            for (let k=0, len = sourcesInView.length; k<len; k++) {
                 Catalog.drawSourceLabel(this, sourcesInView[k], ctx);
             }
         }
@@ -535,7 +535,7 @@ const Catalog = (function() {
         var sourceSize = catalogInstance.sourceSize;
         // TODO : we could factorize this code with Aladin.world2pix
         var xy;
-        if (frame.system != CooFrameEnum.SYSTEMS.J2000) {
+        if (frame.system !== CooFrameEnum.SYSTEMS.J2000) {
             var lonlat = CooConversion.J2000ToGalactic([s.ra, s.dec]);
             xy = projection.project(lonlat[0], lonlat[1]);
         }
@@ -626,7 +626,7 @@ const Catalog = (function() {
             return;
         }
         this.isShowing = false;
-        if (this.view && this.view.popup && this.view.popup.source && this.view.popup.source.catalog==this) {
+        if (this.view && this.view.popup && this.view.popup.source && this.view.popup.source.catalog===this) {
             this.view.popup.hide();
         }
 

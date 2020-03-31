@@ -31,7 +31,7 @@ import AladinUtils from './AladinUtils'
 import CooFrameEnum from './CooFrameEnum'
 
 const CooGrid = (function() {
-    var CooGrid = function() {
+    const CooGrid = function() {
     };
 
     function viewxy2lonlat(projection, vx, vy, width, height, largestDim, zoomFactor) {
@@ -105,14 +105,14 @@ const CooGrid = (function() {
         for (var lat=latStart; lat<latMax+LAT_STEP; lat+=LAT_STEP) {
             ctx.beginPath();
 
-            var vxy;
+            let vxy;
             vxy = AladinUtils.radecToViewXy(lonMin, lat, projection, CooFrameEnum.J2000, width, height, largestDim, zoomFactor);
             if (!vxy) {
                 continue;
             }
             ctx.moveTo(vxy.vx, vxy.vy);
-            var k = 0;
-            for (var lon=lonMin; lon<lonMax+LON_STEP; lon+=lonDiff/10) {
+            let k = 0;
+            for (let lon=lonMin; lon<lonMax+LON_STEP; lon+=lonDiff/10) {
                 k++;
                 vxy = AladinUtils.radecToViewXy(lon, lat, projection, CooFrameEnum.J2000, width, height, largestDim, zoomFactor);
                 ctx.lineTo(vxy.vx, vxy.vy);
@@ -124,17 +124,17 @@ const CooGrid = (function() {
             ctx.stroke();
         }
 
-        for (var lon=lonStart; lon<lonMax+LON_STEP; lon+=LON_STEP) {
+        for (let lon=lonStart; lon<lonMax+LON_STEP; lon+=LON_STEP) {
             ctx.beginPath();
 
-            var vxy;
+            let vxy;
             vxy = AladinUtils.radecToViewXy(lon, latMin, projection, CooFrameEnum.J2000, width, height, largestDim, zoomFactor);
             if (!vxy) {
                 continue;
             }
             ctx.moveTo(vxy.vx, vxy.vy);
-            var k = 0;
-            for (var lat=latMin; lat<latMax+LAT_STEP; lat+=latDiff/10) {
+            let k = 0;
+            for (let lat=latMin; lat<latMax+LAT_STEP; lat+=latDiff/10) {
                 k++;
                 vxy = AladinUtils.radecToViewXy(lon, lat, projection, CooFrameEnum.J2000, width, height, largestDim, zoomFactor);
                 ctx.lineTo(vxy.vx, vxy.vy);

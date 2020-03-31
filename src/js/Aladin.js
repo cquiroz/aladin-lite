@@ -57,7 +57,7 @@ const Aladin = (function() {
     };
 
     // Constructor
-    var Aladin = function(aladinDiv, requestedOptions) {
+    const Aladin = function(aladinDiv, requestedOptions) {
         // check that aladinDiv exists, stop immediately otherwise
         if ($(aladinDiv).length===0) {
             console.log('Could not find div ' + aladinDiv + '. Aborting creation of Aladin Lite instance');
@@ -114,9 +114,9 @@ const Aladin = (function() {
 		// locationDiv is the div where we write the position
 		var locationDiv = $('<div class="aladin-location">'
 		                    + (options.showFrame ? '<select class="aladin-frameChoice"><option value="' + CooFrameEnum.J2000.label + '" '
-		                    + (cooFrame==CooFrameEnum.J2000 ? 'selected="selected"' : '') + '>J2000</option><option value="' + CooFrameEnum.J2000d.label + '" '
-		                    + (cooFrame==CooFrameEnum.J2000d ? 'selected="selected"' : '') + '>J2000d</option><option value="' + CooFrameEnum.GAL.label + '" '
-		                    + (cooFrame==CooFrameEnum.GAL ? 'selected="selected"' : '') + '>GAL</option></select>' : '')
+		                    + (cooFrame===CooFrameEnum.J2000 ? 'selected="selected"' : '') + '>J2000</option><option value="' + CooFrameEnum.J2000d.label + '" '
+		                    + (cooFrame===CooFrameEnum.J2000d ? 'selected="selected"' : '') + '>J2000d</option><option value="' + CooFrameEnum.GAL.label + '" '
+		                    + (cooFrame===CooFrameEnum.GAL ? 'selected="selected"' : '') + '>GAL</option></select>' : '')
 		                    + '<span class="aladin-location-text"></span></div>')
 		                    .appendTo(aladinDiv);
 		// div where FoV value is written
@@ -181,11 +181,11 @@ const Aladin = (function() {
 	        dataType: 'jsonp', // could this be repaced by json ??
 	        success: function(data) {
                 var map = {};
-                for (var k=0; k<data.length; k++) {
+                for (let k=0; k<data.length; k++) {
                     map[data[k].id] = true;
                 }
                 // retrieve existing surveys
-                for (var k=0; k<HpxImageSurvey.SURVEYS.length; k++) {
+                for (let k=0; k<HpxImageSurvey.SURVEYS.length; k++) {
                     if (! map[HpxImageSurvey.SURVEYS[k].id]) {
                         data.push(HpxImageSurvey.SURVEYS[k]);
                     }
@@ -201,7 +201,7 @@ const Aladin = (function() {
         // TODO : valeur des checkbox en fonction des options
 		// TODO : classe LayerBox
         if (options.showLayersControl) {
-            var d = $('<div class="aladin-layersControl-container" title="Manage layers"><div class="aladin-layersControl"></div></div>');
+            let d = $('<div class="aladin-layersControl-container" title="Manage layers"><div class="aladin-layersControl"></div></div>');
             d.appendTo(aladinDiv);
 
             var layerBox = $('<div class="aladin-box aladin-layerBox aladin-cb-list"></div>');
@@ -217,7 +217,7 @@ const Aladin = (function() {
 
         // goto control panel
         if (options.showGotoControl) {
-            var d = $('<div class="aladin-gotoControl-container" title="Go to position"><div class="aladin-gotoControl"></div></div>');
+            let d = $('<div class="aladin-gotoControl-container" title="Go to position"><div class="aladin-gotoControl"></div></div>');
             d.appendTo(aladinDiv);
 
             var gotoBox =
@@ -249,7 +249,7 @@ const Aladin = (function() {
 
         // simbad pointer tool
         if (options.showSimbadPointerControl) {
-            var d = $('<div class="aladin-simbadPointerControl-container" title="SIMBAD pointer"><div class="aladin-simbadPointerControl"></div></div>');
+            let d = $('<div class="aladin-simbadPointerControl-container" title="SIMBAD pointer"><div class="aladin-simbadPointerControl"></div></div>');
             d.appendTo(aladinDiv);
 
             d.click(function() {
@@ -259,7 +259,7 @@ const Aladin = (function() {
 
         // share control panel
         if (options.showShareControl) {
-            var d = $('<div class="aladin-shareControl-container" title="Get link for current view"><div class="aladin-shareControl"></div></div>');
+            let d = $('<div class="aladin-shareControl-container" title="Get link for current view"><div class="aladin-shareControl"></div></div>');
             d.appendTo(aladinDiv);
 
             var shareBox =
@@ -450,7 +450,7 @@ const Aladin = (function() {
         var select = $(this.aladinDiv).find('.aladin-surveySelection');
         select.empty();
         for (var i=0; i<surveys.length; i++) {
-            var isCurSurvey = this.view.imageSurvey.id==surveys[i].id;
+            var isCurSurvey = this.view.imageSurvey.id===surveys[i].id;
             select.append($("<option />").attr("selected", isCurSurvey).val(surveys[i].id).text(surveys[i].name));
         };
     };
@@ -476,7 +476,7 @@ const Aladin = (function() {
 
         var requestedShowreticle = urlParam('showReticle');
         if (requestedShowreticle) {
-            options.showReticle = requestedShowreticle.toLowerCase()=='true';
+            options.showReticle = requestedShowreticle.toLowerCase()==='true';
         }
 
         var requestedCooFrame =  urlParam('cooFrame');
@@ -545,7 +545,7 @@ const Aladin = (function() {
             return;
         }
         var newFrame = CooFrameEnum.fromString(frameName, CooFrameEnum.J2000);
-        if (newFrame==this.view.cooFrame)  {
+        if (newFrame===this.view.cooFrame)  {
             return;
         }
 
@@ -601,7 +601,7 @@ const Aladin = (function() {
 
 			coo.parse(targetName);
 			var lonlat = [coo.lon, coo.lat];
-			if (this.view.cooFrame == CooFrameEnum.GAL) {
+			if (this.view.cooFrame === CooFrameEnum.GAL) {
 				lonlat = CooConversion.GalacticToJ2000(lonlat);
 			}
     		this.view.pointTo(lonlat[0], lonlat[1]);
@@ -639,7 +639,7 @@ const Aladin = (function() {
     Aladin.prototype.gotoPosition = function(lon, lat) {
         var radec;
         // first, convert to J2000 if needed
-        if (this.view.cooFrame==CooFrameEnum.GAL) {
+        if (this.view.cooFrame===CooFrameEnum.GAL) {
             radec = CooConversion.GalacticToJ2000([lon, lat]);
         }
         else {
@@ -773,17 +773,17 @@ const Aladin = (function() {
      *  Return intermediate points in degrees
      *
      */
-    function intermediatePoint(lng1, lat1, lng2, lat2, fraction) {
+    function intermediatePoint(lng1a, lat1a, lng2a, lat2a, fraction) {
         function degToRad(d) {
             return d * Math.PI / 180;
         }
         function radToDeg(r) {
             return r * 180 / Math.PI;
         }
-        var lat1=degToRad(lat1);
-        var lng1=degToRad(lng1);
-        var lat2=degToRad(lat2);
-        var lng2=degToRad(lng2);
+        let lat1=degToRad(lat1a);
+        let lng1=degToRad(lng1a);
+        let lat2=degToRad(lat2a);
+        let lng2=degToRad(lng2a);
         var d = 2 * Math.asin(
                     Math.sqrt(Math.pow((Math.sin((lat1 - lat2) / 2)),
                     2) +
@@ -812,7 +812,7 @@ const Aladin = (function() {
      * @API
      */
     Aladin.prototype.getRaDec = function() {
-        if (this.view.cooFrame.system==CooFrameEnum.SYSTEMS.J2000) {
+        if (this.view.cooFrame.system===CooFrameEnum.SYSTEMS.J2000) {
             return [this.view.viewCenter.lon, this.view.viewCenter.lat];
         }
         else {
@@ -1011,7 +1011,7 @@ const Aladin = (function() {
 
          // fill color maps options
          var cmSelect = layerBox.find('.aladin-cmSelection');
-         for (var k=0; k<ColorMap.MAPS_NAMES.length; k++) {
+         for (let k=0; k<ColorMap.MAPS_NAMES.length; k++) {
              cmSelect.append($("<option />").text(ColorMap.MAPS_NAMES[k]));
          }
          cmSelect.val(self.getBaseImageLayer().getColorMap().mapName);
@@ -1020,28 +1020,28 @@ const Aladin = (function() {
          // loop over all overlay layers
          var layers = this.view.allOverlayLayers;
          var str = '<ul>';
-         for (var k=layers.length-1; k>=0; k--) {
+         for (let k=layers.length-1; k>=0; k--) {
              var layer = layers[k];
              var name = layer.name;
-             var checked = '';
+             let checked = '';
              if (layer.isShowing) {
                  checked = 'checked="checked"';
              }
 
              var tooltipText = '';
              var iconSvg = '';
-             if (layer.type=='catalog' || layer.type=='progressivecat') {
+             if (layer.type==='catalog' || layer.type==='progressivecat') {
                 var nbSources = layer.getSources().length;
                 tooltipText = nbSources + ' source' + ( nbSources>1 ? 's' : '');
 
                 iconSvg = AladinUtils.SVG_ICONS.CATALOG;
             }
-            else if (layer.type=='moc') {
+            else if (layer.type==='moc') {
                 tooltipText = 'Coverage: ' + (100*layer.skyFraction()).toFixed(3) + ' % of sky';
 
                 iconSvg = AladinUtils.SVG_ICONS.MOC;
             }
-            else if (layer.type=='overlay') {
+            else if (layer.type==='overlay') {
                 iconSvg = AladinUtils.SVG_ICONS.OVERLAY;
             }
 
@@ -1059,7 +1059,7 @@ const Aladin = (function() {
          layerBox.append('<div class="aladin-blank-separator"></div>');
 
          // gestion du réticule
-         var checked = '';
+         let checked = '';
          if (this.view.displayReticle) {
              checked = 'checked="checked"';
          }
@@ -1166,7 +1166,7 @@ const Aladin = (function() {
      Aladin.prototype.layerByName = function(name) {
          var c = this.view.allOverlayLayers;
          for (var k=0; k<c.length; k++) {
-             if (name==c[k].name) {
+             if (name===c[k].name) {
                  return c[k];
              }
          }
@@ -1190,8 +1190,8 @@ const Aladin = (function() {
      *
      * @API
     */
-    Aladin.prototype.getViewDataURL = function(options) {
-        var options = options || {};
+    Aladin.prototype.getViewDataURL = function(optionsa) {
+        var options = optionsa || {};
         // support for old API signature
         if (typeof options !== 'object') {
             var imgFormat = options;
@@ -1276,7 +1276,7 @@ const Aladin = (function() {
          }
 
          var res;
-         if (this.view.cooFrame==CooFrameEnum.GAL) {
+         if (this.view.cooFrame===CooFrameEnum.GAL) {
              res = CooConversion.GalacticToJ2000([radec.ra, radec.dec]);
          }
          else {
@@ -1304,7 +1304,7 @@ const Aladin = (function() {
          }
 
          var xy;
-         if (this.view.cooFrame==CooFrameEnum.GAL) {
+         if (this.view.cooFrame===CooFrameEnum.GAL) {
              var lonlat = CooConversion.J2000ToGalactic([ra, dec]);
              xy = this.view.projection.project(lonlat[0], lonlat[1]);
          }
@@ -1339,10 +1339,10 @@ const Aladin = (function() {
          var points = [];
          var x1, y1, x2, y2;
          for (var k=0; k<4; k++) {
-             x1 = (k==0 || k==3) ? 0 : this.view.width-1;
+             x1 = (k===0 || k===3) ? 0 : this.view.width-1;
              y1 = (k<2) ? 0 : this.view.height-1;
              x2 = (k<2) ? this.view.width-1 : 0;
-             y2 = (k==1 || k==2) ? this.view.height-1 :0;
+             y2 = (k===1 || k===2) ? this.view.height-1 :0;
 
              for (var step=0; step<nbSteps; step++) {
                  points.push(this.pix2world(x1 + step/nbSteps * (x2-x1), y1 + step/nbSteps * (y2-y1)));
@@ -1496,7 +1496,7 @@ Aladin.prototype.displayFITS = function(url, options, successCallback, errorCall
         method: 'POST',
         dataType: 'json',
         success: function(response) {
-            if (response.status!='success') {
+            if (response.status!=='success') {
                 console.error('An error occured: ' + response.message);
                 if (errorCallback) {
                     errorCallback(response.message);

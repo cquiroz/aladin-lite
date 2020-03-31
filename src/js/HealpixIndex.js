@@ -48,10 +48,12 @@ const NS_MAX = NSIDELIST[NSIDELIST.length-1];
 const Z0 = Constants.TWOTHIRD;
 
 const TAB_SIZE = 256;
+/* eslint-disable no-mixed-operators */
 const CTAB= new Array(TAB_SIZE).fill(0).map( (v,i) =>
                1 & i | (2 & i) << 7 | (4 & i) >>> 1 | (8 & i) << 6 | (16 & i) >>> 2 | (32 & i) << 5 | (64 & i) >>> 3 | (128 & i) << 4);
 const UTAB= new Array(TAB_SIZE).fill(0).map( (v,i) =>
                1 & i | (2 & i) << 1 | (4 & i) << 2 | (8 & i) << 3 | (16 & i) << 4 | (32 & i) << 5 | (64 & i) << 6 | (128 & i) << 7);
+/* eslint-enable no-mixed-operators */
 
 export default class HealpixIndex {
 
@@ -102,16 +104,16 @@ export default class HealpixIndex {
         phi >= Constants.TWOPI && (phi -= Constants.TWOPI);
         0 > phi && (phi += Constants.TWOPI);
         if (theta > Constants.PI || 0 > theta) {
-            throw {
+            throw new Error({
                 name: 'Illegal argument',
                 message: 'theta must be between 0 and ' + Constants.PI
-            };
+            });
         }
         if (0 > phi) {
-            throw {
+            throw new Error({
                 name: 'Illegal argument',
                 message: 'phi must be between 0 and ' + Constants.TWOPI
-            };
+            });
         }
         const z = Math.cos(theta);
         const za = Math.abs(z);
@@ -219,10 +221,10 @@ export default class HealpixIndex {
     }
     pix2ang_nest(ipix) {
         if (0 > ipix || ipix > this.npix - 1) {
-            throw {
+            throw new Error({
                 name: 'Illegal argument',
                 message: 'ipix out of range'
-            };
+            });
         }
         let nr, z, kshift;
         const e = this.nest2xyf(ipix);
@@ -255,10 +257,10 @@ export default class HealpixIndex {
     }
     static nside2Npix(nside) {
         if (0 > nside || (nside & -nside) !==nside || nside > NS_MAX) {
-            throw {
+            throw new Error({
                 name: 'Illegal argument',
                 message: 'nside should be >0, power of 2, <' + NS_MAX
-            };
+            });
         }
         const i = 12 * nside * nside;
         return i;
@@ -304,10 +306,10 @@ export default class HealpixIndex {
     pix2ang_ring(ipix) {
         let theta, phi, iring, iphi, ip,  fodd, hip, fihip;
         if (0 > ipix || ipix > this.npix - 1) {
-            throw {
+            throw new Error({
                 name: 'Illegal argument',
                 message: 'ipix out of range'
-            };
+            });
         }
         const ipix1 = ipix + 1; // in {1, npix}
 
@@ -502,10 +504,10 @@ export default class HealpixIndex {
      */
     queryDisc(spatialVector, radius, nest, inclusive) {
         if (0 > radius || radius > Constants.PI) {
-            throw {
+            throw new Error({
                 name: 'Illegal argument',
                 message: 'angular radius is in RADIAN and should be in [0,pi]'
-            };
+            });
         }
         let d, f, y, v;
         const pixset = new LongRangeSetBuilder();

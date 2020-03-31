@@ -121,7 +121,6 @@ const AladinUtils = (function() {
     	},
 
     	ipixToIpix: function(npixIn, norderIn, norderOut) {
-    		var npixOut = [];
     		if (norderIn>=norderOut) {
     		}
     	},
@@ -142,7 +141,7 @@ const AladinUtils = (function() {
         // grow array b of vx,vy view positions by *val* pixels
         grow2: function(b, val) {
             var j=0;
-            for ( var i=0; i<4; i++ ) {
+            for ( let i=0; i<4; i++ ) {
                 if ( b[i]==null ) {
                     j++;
                 }
@@ -153,7 +152,7 @@ const AladinUtils = (function() {
             }
 
             var b1 = [];
-            for ( var i=0; i<4; i++ ) {
+            for ( let i=0; i<4; i++ ) {
                 b1.push( {vx: b[i].vx, vy: b[i].vy} );
             }
 
@@ -162,7 +161,7 @@ const AladinUtils = (function() {
                 var c = i===1 ? 3 : 2;
 
                 if ( b1[a]==null ) {
-                    var d,g;
+                    let d,g;
                     if ( a===0 || a===3 ) {
                         d=1;
                         g=2;
@@ -174,7 +173,7 @@ const AladinUtils = (function() {
                     b1[a] = {vx: (b1[d].vx+b1[g].vx)/2, vy: (b1[d].vy+b1[g].vy)/2};
                 }
                 if ( b1[c]==null ) {
-                    var d,g;
+                    let d,g;
                     if ( c===0 || c===3 ) {
                         d=1;
                         g=2;

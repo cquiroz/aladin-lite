@@ -43,7 +43,7 @@ const HpxImageSurvey = (function() {
      * They will be determined by reading the properties file
      *
      */
-    var HpxImageSurvey = function(idOrHiPSDefinition, name, rootUrl, cooFrame, maxOrder, options) {
+    const HpxImageSurvey = function(idOrHiPSDefinition, name, rootUrl, cooFrame, maxOrder, options) {
         // new way
         if (idOrHiPSDefinition instanceof HiPSDefinition) {
             this.hipsDefinition = idOrHiPSDefinition;
@@ -114,7 +114,7 @@ const HpxImageSurvey = (function() {
 
         var found = false;
         for (var k=0; k<HpxImageSurvey.SURVEYS.length; k++) {
-            if (HpxImageSurvey.SURVEYS[k].id==this.id) {
+            if (HpxImageSurvey.SURVEYS[k].id===this.id) {
                 found = true;
             }
         }
@@ -341,7 +341,7 @@ const HpxImageSurvey = (function() {
     HpxImageSurvey.getSurveyInfoFromId = function(id) {
         var surveys = HpxImageSurvey.getAvailableSurveys();
         for (var i=0; i<surveys.length; i++) {
-            if (surveys[i].id==id) {
+            if (surveys[i].id===id) {
                 return surveys[i];
             }
         }
@@ -367,7 +367,7 @@ const HpxImageSurvey = (function() {
 
     HpxImageSurvey.prototype.getTileURL = function(norder, npix) {
     	var dirIdx = Math.floor(npix/10000)*10000;
-    	return this.rootUrl + "/" + "Norder" + norder + "/Dir" + dirIdx + "/Npix" + npix + "." + this.imgFormat  + (this.additionalParams ? ('?' + this.additionalParams) : '');;
+    	return this.rootUrl + "/Norder" + norder + "/Dir" + dirIdx + "/Npix" + npix + "." + this.imgFormat  + (this.additionalParams ? ('?' + this.additionalParams) : '');;
     };
 
     HpxImageSurvey.prototype.retrieveAllskyTextures = function() {
@@ -420,7 +420,7 @@ const HpxImageSurvey = (function() {
 
         var norder4Display = Math.min(curOverlayNorder, this.maxOrder);
         if (curOverlayNorder>=3) {
-            if (curOverlayNorder==3) {
+            if (curOverlayNorder===3) {
                 cornersXYViewMapHighres = cornersXYViewMapAllsky;
             }
             else {
@@ -464,7 +464,7 @@ const HpxImageSurvey = (function() {
         var parentTilesToDraw = [];
         var parentTilesToDrawIndex = {};
         var parentTilesMissingIndex = {};
-        for (var k=0; k<cornersXYViewMap.length; k++) {
+        for (let k=0; k<cornersXYViewMap.length; k++) {
             var ipix = cornersXYViewMap[k].ipix
             var tileURL = this.getTileURL(norder, ipix);
             var tile = this.tileBuffer.getTile(tileURL);
@@ -501,7 +501,7 @@ const HpxImageSurvey = (function() {
 
         var tSize = this.tileSize || 512;
         // draw parent tiles
-        for (var k=0; k<parentTilesToDraw.length; k++) {
+        for (let k=0; k<parentTilesToDraw.length; k++) {
             var t = parentTilesToDraw[k];
             new HpxKey(t.order, t.ipix, this, tSize, tSize).draw(ctx, view);
         }
@@ -527,7 +527,7 @@ const HpxImageSurvey = (function() {
     	var cornersXYView;
         var ipix;
         var dx, dy;
-        for (var k=0; k<cornersXYViewMap.length; k++) {
+        for (let k=0; k<cornersXYViewMap.length; k++) {
     		cornersXYView = cornersXYViewMap[k];
     		ipix = cornersXYView.ipix;
             dy = this.allskyTextureSize * Math.floor(ipix/27);
@@ -535,7 +535,7 @@ const HpxImageSurvey = (function() {
             hpxKeys.push(new HpxKey(3, cornersXYViewMap[k].ipix, this, this.allskyTextureSize, this.allskyTextureSize, dx, dy, this.allskyTexture, this.allskyTextureSize));
         }
 
-        for (var k=0; k<hpxKeys.length; k++) {
+        for (let k=0; k<hpxKeys.length; k++) {
             hpxKeys[k].draw(ctx, view);
         }
     };
@@ -597,14 +597,14 @@ const HpxImageSurvey = (function() {
     HpxImageSurvey.prototype.redrawHighres = function(ctx, cornersXYViewMap, norder) {
 
         // DOES THAT FIX THE PROBLEM ???
-        if (cornersXYViewMap.length==0) {
+        if (cornersXYViewMap.length===0) {
             return;
         }
 
         drawEven = ! drawEven;
         var now = new Date().getTime();
         var updateNeededTiles = (now-this.lastUpdateDateNeededTiles) > HpxImageSurvey.UPDATE_NEEDED_TILES_DELAY;
-        var tile, url, parentTile, parentUrl;
+        let tile, url, parentTile, parentUrl;
         var parentNorder = norder - 1;
         var cornersXYView, parentCornersXYView;
         var tilesToDraw = [];
@@ -635,7 +635,7 @@ const HpxImageSurvey = (function() {
         }
 
 
-    	for (var k=0, len=cornersXYViewMap.length; k<len; k++) {
+    	for (let k=0, len=cornersXYViewMap.length; k<len; k++) {
     		cornersXYView = cornersXYViewMap[k];
     		ipix = cornersXYView.ipix;
 
@@ -657,7 +657,7 @@ const HpxImageSurvey = (function() {
                 missingTiles = true;
 
                 if (updateNeededTiles) {
-                    var tile = this.tileBuffer.addTile(url);
+                    let tile = this.tileBuffer.addTile(url);
                     if (tile) {
                         tilesToDownload.push({img: tile.img, url: url});
                     }
@@ -703,13 +703,13 @@ const HpxImageSurvey = (function() {
 
 
         // draw parent tiles
-        for (var k=0, len = parentTilesToDraw.length; k<len; k++) {
+        for (let k=0, len = parentTilesToDraw.length; k<len; k++) {
         	this.drawOneTile(ctx, parentTilesToDraw[k].img, parentTilesToDraw[k].corners, parentTilesToDraw[k].img.width);
         }
 
         // draw tiles
         ///*
-        for (var k=0, len = tilesToDraw.length; k<len; k++) {
+        for (let k=0, len = tilesToDraw.length; k<len; k++) {
         	var alpha = null;
         	var img = tilesToDraw[k].img;
         	if (img.fadingStart) {
@@ -726,11 +726,11 @@ const HpxImageSurvey = (function() {
         // demande de chargement des tuiles manquantes et mise à jour lastUpdateDateNeededTiles
         if (updateNeededTiles) {
             // demande de chargement des tuiles
-            for (var k=0, len = tilesToDownload.length; k<len; k++) {
+            for (let k=0, len = tilesToDownload.length; k<len; k++) {
                 this.view.downloader.requestDownload(tilesToDownload[k].img, tilesToDownload[k].url, this.useCors);
             }
             //demande de chargement des tuiles parentes
-            for (var k=0, len = parentTilesToDownload.length; k<len; k++) {
+            for (let k=0, len = parentTilesToDownload.length; k<len; k++) {
                 this.view.downloader.requestDownload(parentTilesToDownload[k].img, parentTilesToDownload[k].url, this.useCors);
             }
             this.lastUpdateDateNeededTiles = now;
@@ -741,9 +741,9 @@ const HpxImageSurvey = (function() {
         }
     };
 
-    function dist2(x1,y1,x2,y2) {
-    	return Math.pow(x2-x1, 2) + Math.pow(y2-y1, 2);
-    }
+    // function dist2(x1,y1,x2,y2) {
+    // 	return Math.pow(x2-x1, 2) + Math.pow(y2-y1, 2);
+    // }
 
     HpxImageSurvey.prototype.drawOneTile = function(ctx, img, cornersXYView, textureSize, alpha, dx, dy, applyCorrection) {
 
@@ -827,13 +827,13 @@ const HpxImageSurvey = (function() {
         v0 += dy;
         v1 += dy;
         v2 += dy;
-        var xc = (x0 + x1 + x2) / 3;
-        var yc = (y0 + y1 + y2) / 3;
+        let xc = (x0 + x1 + x2) / 3;
+        let yc = (y0 + y1 + y2) / 3;
 
 
         // ---- centroid ----
-        var xc = (x0 + x1 + x2) / 3;
-        var yc = (y0 + y1 + y2) / 3;
+        xc = (x0 + x1 + x2) / 3;
+        yc = (y0 + y1 + y2) / 3;
         ctx.save();
         if (alpha) {
             ctx.globalAlpha = alpha;
@@ -848,7 +848,7 @@ const HpxImageSurvey = (function() {
             coeff = 0.02; // TODO ????
         }
 */
-var coeff = 0.02;
+        let coeff = 0.02;
 
         // ---- scale triangle by (1 + coeff) to remove anti-aliasing and draw ----
         ctx.beginPath();
@@ -909,13 +909,13 @@ var coeff = 0.02;
         v0 += dy;
         v1 += dy;
         v2 += dy;
-        var xc = (x0 + x1 + x2) / 3;
-        var yc = (y0 + y1 + y2) / 3;
+        let xc = (x0 + x1 + x2) / 3;
+        let yc = (y0 + y1 + y2) / 3;
 
 
         // ---- centroid ----
-        var xc = (x0 + x1 + x2) / 3;
-        var yc = (y0 + y1 + y2) / 3;
+        xc = (x0 + x1 + x2) / 3;
+        yc = (y0 + y1 + y2) / 3;
         ctx.save();
         if (alpha) {
         	ctx.globalAlpha = alpha;

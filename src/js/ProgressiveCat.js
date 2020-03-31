@@ -139,7 +139,7 @@ const ProgressiveCat = (function() {
                 f.ID = "col_" + k;
             }
 
-            if (!instance.keyRa && f.ucd && (f.ucd.indexOf('pos.eq.ra')==0 || f.ucd.indexOf('POS_EQ_RA')==0)) {
+            if (!instance.keyRa && f.ucd && (f.ucd.indexOf('pos.eq.ra')===0 || f.ucd.indexOf('POS_EQ_RA')===0)) {
                 if (f.name) {
                     instance.keyRa = f.name;
                 }
@@ -147,7 +147,7 @@ const ProgressiveCat = (function() {
                     instance.keyRa = f.ID;
                 }
             }
-            if (!instance.keyDec && f.ucd && (f.ucd.indexOf('pos.eq.dec')==0 || f.ucd.indexOf('POS_EQ_DEC')==0)) {
+            if (!instance.keyDec && f.ucd && (f.ucd.indexOf('pos.eq.dec')===0 || f.ucd.indexOf('POS_EQ_DEC')===0)) {
                 if (f.name) {
                     instance.keyDec = f.name;
                 }
@@ -242,7 +242,7 @@ const ProgressiveCat = (function() {
         _loadMetadata: function() {
             var self = this;
             $.ajax({
-                url: self.rootUrl + '/' + 'Metadata.xml',
+                url: self.rootUrl + '/Metadata.xml',
                 method: 'GET',
                 success: function(xml) {
                     self.fields = getFields(self, xml);
@@ -257,7 +257,7 @@ const ProgressiveCat = (function() {
         _loadAllskyNewMethod: function() {
             var self = this;
             $.ajax({
-                url: self.rootUrl + '/' + 'Norder1/Allsky.tsv',
+                url: self.rootUrl + '/Norder1/Allsky.tsv',
                 method: 'GET',
                 success: function(tsv) {
                     self.order1Sources = getSources(self, tsv, self.fields);
@@ -273,7 +273,7 @@ const ProgressiveCat = (function() {
             });
 
             $.ajax({
-                url: self.rootUrl + '/' + 'Norder2/Allsky.tsv',
+                url: self.rootUrl + '/Norder2/Allsky.tsv',
                 method: 'GET',
                 success: function(tsv) {
                     self.order2Sources = getSources(self, tsv, self.fields);
@@ -299,7 +299,7 @@ const ProgressiveCat = (function() {
         _loadLevel2Sources: function() {
             var self = this;
             $.ajax({
-                url: self.rootUrl + '/' + 'Norder2/Allsky.xml',
+                url: self.rootUrl + '/Norder2/Allsky.xml',
                 method: 'GET',
                 success: function(xml) {
                     self.fields = getFields(self, xml);
@@ -318,7 +318,7 @@ const ProgressiveCat = (function() {
         _loadLevel3Sources: function() {
             var self = this;
             $.ajax({
-                url: self.rootUrl + '/' + 'Norder3/Allsky.xml',
+                url: self.rootUrl + '/Norder3/Allsky.xml',
                 method: 'GET',
                 success: function(xml) {
                     self.order3Sources = getSources(self, $(xml).find('CSV').text(), self.fields);
@@ -366,10 +366,10 @@ const ProgressiveCat = (function() {
             if (! sources) {
                 return;
             }
-            for (var k=0, len = sources.length; k<len; k++) {
+            for (let k=0, len = sources.length; k<len; k++) {
                 Catalog.drawSource(this, sources[k], ctx, projection, frame, width, height, largestDim, zoomFactor);
             }
-            for (var k=0, len = sources.length; k<len; k++) {
+            for (let k=0, len = sources.length; k<len; k++) {
                 if (! sources[k].isSelected) {
                     continue;
                 }
@@ -390,7 +390,7 @@ const ProgressiveCat = (function() {
             }
             if (this.tilesInView) {
                 var sources, key, t;
-                for (var k=0; k<this.tilesInView.length; k++) {
+                for (let k=0; k<this.tilesInView.length; k++) {
                     t = this.tilesInView[k];
                     key = t[0] + '-' + t[1];
                     sources = this.sourcesCache.get(key);
@@ -407,19 +407,19 @@ const ProgressiveCat = (function() {
 
         deselectAll: function() {
             if (this.order1Sources) {
-                for (var k=0; k<this.order1Sources.length; k++) {
+                for (let k=0; k<this.order1Sources.length; k++) {
                     this.order1Sources[k].deselect();
                 }
             }
 
             if (this.order2Sources) {
-                for (var k=0; k<this.order2Sources.length; k++) {
+                for (let k=0; k<this.order2Sources.length; k++) {
                     this.order2Sources[k].deselect();
                 }
             }
 
             if (this.order3Sources) {
-                for (var k=0; k<this.order3Sources.length; k++) {
+                for (let k=0; k<this.order3Sources.length; k++) {
                     this.order3Sources[k].deselect();
                 }
             }
@@ -429,7 +429,7 @@ const ProgressiveCat = (function() {
                     continue;
                 }
                 var sources = this.sourcesCache[key];
-                for (var k=0; k<sources.length; k++) {
+                for (let k=0; k<sources.length; k++) {
                     sources[k].deselect();
                 }
             }
@@ -450,13 +450,10 @@ const ProgressiveCat = (function() {
             this.isShowing = false;
             this.reportChange();
         },
-        reportChange: function() {
-            this.view.requestRedraw();
-        },
 
         getTileURL: function(norder, npix) {
             var dirIdx = Math.floor(npix/10000)*10000;
-            return this.rootUrl + "/" + "Norder" + norder + "/Dir" + dirIdx + "/Npix" + npix + ".tsv";
+            return this.rootUrl + "/Norder" + norder + "/Dir" + dirIdx + "/Npix" + npix + ".tsv";
         },
 
         loadNeededTiles: function() {
@@ -490,8 +487,7 @@ const ProgressiveCat = (function() {
             }
 
             var t, key;
-            var self = this;
-            for (var k=0; k<this.tilesInView.length; k++) {
+            for (let k=0; k<this.tilesInView.length; k++) {
                 t = this.tilesInView[k];
                 key = t[0] + '-' + t[1]; // t[0] is norder, t[1] is ipix
                 if (!this.sourcesCache.get(key)) {

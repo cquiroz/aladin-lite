@@ -194,10 +194,10 @@ Coo.prototype = {
         str = str.replace(/:/g, ' ');
 
 		var sign;
-		if (str.charAt(0) == '-') {
+		if (str.charAt(0) === '-') {
 			sign = -1;
 			str = str.substring(1);
-		} else if (str.charAt(0) == '-') {
+		} else if (str.charAt(0) === '-') {
 			sign = 1;
 			str = str.substring(1);
 		} else {
@@ -221,7 +221,7 @@ Coo.prototype = {
 				switch (i) {
 					case 0: pr = dec < 0 ? 1 : 2; break;
 					case 1: pr = dec < 0 ? 3 : 4; break;
-					case 2: pr = dec < 0 ? 5 : 4+tok.length-dec;
+					case 2: pr = dec < 0 ? 5 : 4+tok.length-dec; break;
 					default: break;
 				}
 				i++;
@@ -238,7 +238,7 @@ Coo.prototype = {
 	 */
 	format: function(options) {
 		if (isNaN(this.lon)) this.computeLonLat();
-		var strlon = "", strlat = "";
+		let strlon = "", strlat = "";
 		if (options.indexOf('d') >= 0) {
 			// decimal display
 			strlon = Numbers.format(this.lon, this.prec);
@@ -246,8 +246,8 @@ Coo.prototype = {
 		} else {
 			// sexagesimal display
 			var hlon = this.lon/15.0;
-			var strlon = Numbers.toSexagesimal(hlon, this.prec+1, false);
-			var strlat = Numbers.toSexagesimal(this.lat, this.prec, false);
+			Numbers.toSexagesimal(hlon, this.prec+1, false);
+			Numbers.toSexagesimal(this.lat, this.prec, false);
 		}
 		if (this.lat > 0) strlat = '+'+strlat;
 
@@ -333,10 +333,10 @@ Tokenizer.prototype = {
 	nextToken: function() {
 		// skip all the separator chars
 		var p0 = this.pos;
-		while (p0 < this.string.length && this.string.charAt(p0) == this.sep) p0++;
+		while (p0 < this.string.length && this.string.charAt(p0) === this.sep) p0++;
 		var p1 = p0;
 		// get the token
-		while (p1 < this.string.length && this.string.charAt(p1) != this.sep) p1++;
+		while (p1 < this.string.length && this.string.charAt(p1) !== this.sep) p1++;
 		this.pos = p1;
 		return this.string.substring(p0, p1);
 	},
@@ -356,9 +356,9 @@ function Strings() {}
 
 Strings.trim = function(str, c) {
 	var p0=0, p1=str.length-1;
-	while (p0 < str.length && str.charAt(p0) == c) p0++;
-	if (p0 == str.length) return "";
-	while (p1 > p0 && str.charAt(p1) == c) p1--;
+	while (p0 < str.length && str.charAt(p0) === c) p0++;
+	if (p0 === str.length) return "";
+	while (p1 > p0 && str.charAt(p1) === c) p1--;
 	return str.substring(p0, p1+1);
 }
 
@@ -411,40 +411,40 @@ Numbers.format = function(num, prec) {
  * @return a string with the formatted sexagesimal number
  */
 Numbers.toSexagesimal = function(num, prec, plus) {
-	var resu = "";
+	// var resu = "";
 	var sign = num < 0 ? '-' : (plus ? '+' : '');
 	var n = Math.abs(num);
 
 	switch (prec) {
-		case 1:	// deg
-			var n1 = Math.round(n);
-			return sign+n1.toString();
+		case 1:	{// deg
+			let n1 = Math.round(n);
+			return sign+n1.toString();}
 		case 2:	// deg.d
 			return sign+Numbers.format(n, 1);
-		case 3:	// deg min
-			var n1 = Math.floor(n);
-			var n2 = Math.round((n-n1)*60);
-			return sign+n1+' '+n2;
-		case 4:	// deg min.d
-			var n1 = Math.floor(n);
-			var n2 = (n-n1)*60;
-			return sign+n1+' '+Numbers.format(n2, 1);
-		case 5:	// deg min sec
-			var n1 = Math.floor(n);	// d
-			var n2 = (n-n1)*60;		// M.d
-			var n3 = Math.floor(n2);// M
-			var n4 = Math.round((n2-n3)*60);	// S
-			return sign+n1+' '+n3+' '+n4;
+		case 3:	{// deg min
+			let n1 = Math.floor(n);
+			let n2 = Math.round((n-n1)*60);
+			return sign+n1+' '+n2;}
+		case 4:	{// deg min.d
+			let n1 = Math.floor(n);
+			let n2 = (n-n1)*60;
+			return sign+n1+' '+Numbers.format(n2, 1);}
+		case 5:	{// deg min sec
+			let n1 = Math.floor(n);	// d
+			let n2 = (n-n1)*60;		// M.d
+			let n3 = Math.floor(n2);// M
+			let n4 = Math.round((n2-n3)*60);	// S
+			return sign+n1+' '+n3+' '+n4;}
 		case 6:	// deg min sec.d
 		case 7:	// deg min sec.dd
-		case 8:	// deg min sec.ddd
-			var n1 = Math.floor(n);	// d
+		case 8:	{// deg min sec.ddd
+			let n1 = Math.floor(n);	// d
 			if (n1<10) n1 = '0' + n1;
-			var n2 = (n-n1)*60;		// M.d
-			var n3 = Math.floor(n2);// M
+			let n2 = (n-n1)*60;		// M.d
+			let n3 = Math.floor(n2);// M
 			if (n3<10) n3 = '0' + n3;
-			var n4 = (n2-n3)*60;		// S.ddd
-			return sign+n1+' '+n3+' '+Numbers.format(n4, prec-5);
+			let n4 = (n2-n3)*60;		// S.ddd
+			return sign+n1+' '+n3+' '+Numbers.format(n4, prec-5);}
 		default:
 			return sign+Numbers.format(n, 1);
 	}
