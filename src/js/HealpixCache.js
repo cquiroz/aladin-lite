@@ -51,7 +51,6 @@ const HealpixCache = (function() {
     HealpixCache.init = function() {
     	// pre-compute corners position for nside=8
     	var hpxIdx = new HealpixIndex(8);
-    	hpxIdx.init();
     	var npix = HealpixIndex.nside2Npix(8);
         var corners;
     	for (var ipix=0; ipix<npix; ipix++) {
@@ -71,7 +70,6 @@ const HealpixCache = (function() {
 
     	if (nside !== HealpixCache.lastNside) {
     		HealpixCache.hpxIdxCache = new HealpixIndex(nside);
-    		HealpixCache.hpxIdxCache.init();
     		HealpixCache.lastNside = nside;
     	}
 

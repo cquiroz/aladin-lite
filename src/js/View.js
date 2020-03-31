@@ -1280,7 +1280,6 @@ const View = (function() {
         }
         else {
             var hpxIdx = new HealpixIndex(nside);
-            hpxIdx.init();
             var spatialVector = new SpatialVector();
             // if frame != frame image survey, we need to convert to survey frame system
             var xy = AladinUtils.viewToXy(this.cx, this.cy, this.width, this.height, this.largestDim, this.zoomFactor);

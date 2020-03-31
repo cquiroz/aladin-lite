@@ -1,703 +1,718 @@
 import Constants from './Constants';
 import Utils from './Utils';
 import SpatialVector from './SpatialVector';
-import LongRangeSetBuilder from './LongRangeSetBuilder';
 
-const HealpixIndex = (function() {
-  function t(t) {
-    this.nside = t;
-  }
-    t.NS_MAX = 8192;
-    t.ORDER_MAX = 13;
-  t.NSIDELIST = [
-    1,
-    2,
-    4,
-    8,
-    16,
-    32,
-    64,
-    128,
-    256,
-    512,
-    1024,
-    2048,
-    4096,
-    8192
-  ];
-    t.JRLL = [2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4];
-    t.JPLL = [1, 3, 5, 7, 0, 2, 4, 6, 1, 3, 5, 7];
-    t.XOFFSET = [-1, -1, 0, 1, 1, 1, 0, -1];
-    t.YOFFSET = [0, 1, 1, 1, 0, -1, -1, -1];
-  t.FACEARRAY = [
-    [8, 9, 10, 11, -1, -1, -1, -1, 10, 11, 8, 9],
-    [5, 6, 7, 4, 8, 9, 10, 11, 9, 10, 11, 8],
-    [-1, -1, -1, -1, 5, 6, 7, 4, -1, -1, -1, -1],
-    [4, 5, 6, 7, 11, 8, 9, 10, 11, 8, 9, 10],
-    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-    [1, 2, 3, 0, 0, 1, 2, 3, 5, 6, 7, 4],
-    [-1, -1, -1, -1, 7, 4, 5, 6, -1, -1, -1, -1],
-    [3, 0, 1, 2, 3, 0, 1, 2, 4, 5, 6, 7],
-    [2, 3, 0, 1, -1, -1, -1, -1, 0, 1, 2, 3]
-  ];
-  t.SWAPARRAY = [
-    [0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3],
-    [0, 0, 0, 0, 0, 0, 0, 0, 6, 6, 6, 6],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 5, 5, 5, 5],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [5, 5, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [6, 6, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0],
-    [3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0]
-  ];
-    t.Z0 = Constants.TWOTHIRD;
-  t.prototype.init = function() {
-    var s = 256;
-    this.ctab = Array(s);
-    this.utab = Array(s);
-    for (var i = 0; 256 > i; ++i) {
-      this.ctab[i] =
-        (1 & i) |
-        ((2 & i) << 7) |
-        ((4 & i) >> 1) |
-        ((8 & i) << 6) |
-        ((16 & i) >> 2) |
-        ((32 & i) << 5) |
-        ((64 & i) >> 3) |
-        ((128 & i) << 4);
-      this.utab[i] =
-        (1 & i) |
-        ((2 & i) << 1) |
-        ((4 & i) << 2) |
-        ((8 & i) << 3) |
-        ((16 & i) << 4) |
-        ((32 & i) << 5) |
-        ((64 & i) << 6) |
-        ((128 & i) << 7);
+class LongRangeSetBuilder {
+
+    constructor() { this.items = []; }
+
+    appendRange(first, last) {
+        for (let i = first; last >= i; i++) i in this.items || this.items.push(i);
+    };
+}
+
+function bigAnd(v1, v2) {
+    const hi = 0x80000000;
+    const low = 0x7fffffff;
+    const hi1 = ~~(v1 / hi);
+    const hi2 = ~~(v2 / hi);
+    const low1 = (v1 & low) >>> 0;
+    const low2 = (v2 & low) >>> 0;
+    const h = (hi1 & hi2) >>> 0;
+    const l = (low1 & low2) >>> 0;
+    return h*hi + l;
+}
+
+function bigOr(v1, v2) {
+    const hi = 0x80000000;
+    const low = 0x7fffffff;
+    const hi1 = ~~(v1 / hi);
+    const hi2 = ~~(v2 / hi);
+    const low1 = (v1 & low) >>> 0;
+    const low2 = (v2 & low) >>> 0;
+    const h = (hi1 | hi2) >>> 0;
+    const l = (low1 | low2) >>> 0;
+    return h*hi + l;
+}
+
+const orAll= (...args) => args.reduce( (prev,curr) => bigOr(prev,curr) ,0);
+
+const powerOf2= new Array(53).fill(0).map((val,idx) => 2**idx);
+const shiftRight= (v,bits) => Math.trunc(v / powerOf2[bits]);
+const shiftLeft= (v,bits) => Math.trunc(v * powerOf2[bits]);
+
+export const ORDER_MAX = 26;
+const NSIDELIST = new Array(ORDER_MAX).fill(0).map((val,idx) => 2**idx);
+const JPLL = [1, 3, 5, 7, 0, 2, 4, 6, 1, 3, 5, 7];
+const JRLL = [2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4];
+const NS_MAX = NSIDELIST[NSIDELIST.length-1];
+const Z0 = Constants.TWOTHIRD;
+
+const TAB_SIZE = 256;
+const CTAB= new Array(TAB_SIZE).fill(0).map( (v,i) =>
+               1 & i | (2 & i) << 7 | (4 & i) >>> 1 | (8 & i) << 6 | (16 & i) >>> 2 | (32 & i) << 5 | (64 & i) >>> 3 | (128 & i) << 4);
+const UTAB= new Array(TAB_SIZE).fill(0).map( (v,i) =>
+               1 & i | (2 & i) << 1 | (4 & i) << 2 | (8 & i) << 3 | (16 & i) << 4 | (32 & i) << 5 | (64 & i) << 6 | (128 & i) << 7);
+
+export default class HealpixIndex {
+
+    constructor(nside) {
+        this.nside = nside;
+        this.nl2 = 2 * nside;
+        this.nl3 = 3 * nside;
+        this.nl4 = 4 * nside;
+        this.npface = nside * nside;
+        this.ncap = 2 * nside * (nside - 1);
+        this.npix = 12 * this.npface;
+        this.fact2 = 4 / this.npix;
+        this.fact1 = (nside << 1) * this.fact2;
+        this.order = HealpixIndex.nside2order(nside);
     }
-    this.nl2 = 2 * this.nside;
-      this.nl3 = 3 * this.nside;
-      this.nl4 = 4 * this.nside;
-      this.npface = this.nside * this.nside;
-      this.ncap = 2 * this.nside * (this.nside - 1);
-      this.npix = 12 * this.npface;
-      this.fact2 = 4 / this.npix;
-      this.fact1 = (this.nside << 1) * this.fact2;
-      this.order = t.nside2order(this.nside);
-  };
-  t.calculateNSide = function(s) {
-    for (
-      var i = 0,
-      n = s * s,
-      a = 180 / Constants.PI,
-      e = 3600 * 3600 * 4 * Constants.PI * a * a,
-      h = Utils.castToInt(e / n),
-      r = h / 12,
-      o = Math.sqrt(r),
-      c = t.NS_MAX,
-      u = 0,
-      p = 0;
-      t.NSIDELIST.length > p;
-      p++
-    )
-      if (
-        (c >= Math.abs(o - t.NSIDELIST[p]) &&
-          ((c = Math.abs(o - t.NSIDELIST[p])),
-            (i = t.NSIDELIST[p]),
-            (u = p)),
-          o > i && t.NS_MAX > o && (i = t.NSIDELIST[u + 1]),
-          o > t.NS_MAX)
-      )
-        return (
-          console.log("nside cannot be bigger than " + t.NS_MAX), t.NS_MAX
-        );
-    return i;
-  };
-  t.nside2order = function(s) {
-    return (s & (s - 1)) > 0 ? -1 : Utils.castToInt(t.log2(s));
-  };
-  t.log2 = function(t) {
-    return Math.log(t) / Math.log(2);
-  };
-  t.prototype.ang2pix_nest = function(s, i) {
-    var n, a, e, h, r, o, c, u, p, l, d, f, I;
-    if (
-      (i >= Constants.TWOPI && (i -= Constants.TWOPI),
-        0 > i && (i += Constants.TWOPI),
-        s > Constants.PI || 0 > s)
-    )
-      throw {
-        name: "Illegal argument",
-        message: "theta must be between 0 and " + Constants.PI
-      };
-    if (i > Constants.TWOPI || 0 > i)
-      throw {
-        name: "Illegal argument",
-        message: "phi must be between 0 and " + Constants.TWOPI
-      };
-    if (
-      ((a = Math.cos(s)),
-        (e = Math.abs(a)),
-        (h = i / Constants.PIOVER2),
-        t.Z0 >= e)
-    ) {
-      var M = this.nside * (0.5 + h),
-        y = this.nside * 0.75 * a,
-        u = M - y,
-        p = M + y;
-      o = u >> this.order;
-        c = p >> this.order;
-        d = o == c ? (4 == o ? 4 : o + 4) : c > o ? o : c + 8;
-        f = Utils.castToInt(p & (this.nside - 1));
-        I = Utils.castToInt(this.nside - (u & (this.nside - 1)) - 1);
-    } else {
-      l = Utils.castToInt(h);
-      l >= 4 && (l = 3);
-      r = h - l;
-      var g = this.nside * Math.sqrt(3 * (1 - e));
-      u = Utils.castToInt(r * g);
-        p = Utils.castToInt((1 - r) * g);
-        u = Math.min(t.NS_MAX - 1, u);
-        p = Math.min(t.NS_MAX - 1, p);
-        if (a >= 0) {
-          d = l;
-            f = Utils.castToInt(this.nside - p - 1);
-            I = Utils.castToInt(this.nside - u - 1);
-        } else {
-          d = l + 8;
-          f = u;
-          I = p
-    }}
-    return (n = this.xyf2nest(f, I, d));
-  };
-  return (
-    (t.prototype.xyf2nest = function(t, s, i) {
-      return (
-        (i << (2 * this.order)) +
-        (this.utab[255 & t] |
-          (this.utab[255 & (t >> 8)] << 16) |
-          (this.utab[255 & (t >> 16)] << 32) |
-          (this.utab[255 & (t >> 24)] << 48) |
-          (this.utab[255 & s] << 1) |
-          (this.utab[255 & (s >> 8)] << 17) |
-          (this.utab[255 & (s >> 16)] << 33) |
-          (this.utab[255 & (s >> 24)] << 49))
-      );
-    }),
-    (t.prototype.nest2xyf = function(t) {
-      var s = {};
-      s.face_num = t >> (2 * this.order);
-      var i = t & (this.npface - 1),
-        n =
-        ((93823560581120 & i) >> 16) |
-        ((614882086624428e4 & i) >> 31) |
-        (21845 & i) |
-        ((1431633920 & i) >> 15);
-      return (
-        (s.ix =
-          this.ctab[255 & n] |
-          (this.ctab[255 & (n >> 8)] << 4) |
-          (this.ctab[255 & (n >> 16)] << 16) |
-          (this.ctab[255 & (n >> 24)] << 20)),
-        (i >>= 1),
-        (n =
-          ((93823560581120 & i) >> 16) |
-          ((614882086624428e4 & i) >> 31) |
-          (21845 & i) |
-          ((1431633920 & i) >> 15)),
-        (s.iy =
-          this.ctab[255 & n] |
-          (this.ctab[255 & (n >> 8)] << 4) |
-          (this.ctab[255 & (n >> 16)] << 16) |
-          (this.ctab[255 & (n >> 24)] << 20)),
-        s
-      );
-    }),
-    (t.prototype.pix2ang_nest = function(s) {
-      if (0 > s || s > this.npix - 1)
-        throw {
-          name: "Illegal argument",
-          message: "ipix out of range"
-        };
-      var i,
-        n,
-        a,
-        e = this.nest2xyf(s),
-        h = e.ix,
-        r = e.iy,
-        o = e.face_num,
-        c = (t.JRLL[o] << this.order) - h - r - 1;
-      if (this.nside > c) {
-        i = c;
-        n = 1 - i * i * this.fact2;
-       a = 0;
-      } else if(c > this.nl3)
-      {
-        i = this.nl4 - c;
-        n = i * i * this.fact2 - 1;
-        a = 0;
-      } else {
-        i = this.nside;
-          n = (this.nl2 - c) * this.fact1;
-          a = 1 & (c - this.nside);
-      }
-      var u = Math.acos(n);
-        var p = (t.JPLL[o] * i + h - r + 1 + a) / 2;
-      p > this.nl4 && (p -= this.nl4);
-      1 > p && (p += this.nl4);
-      var l = (p - 0.5 * (a + 1)) * (Constants.PIOVER2 / i);
-      return {
-        theta: u,
-        phi: l
-      };
-    }),
-    (t.nside2Npix = function(s) {
-      if (0 > s || (s & -s) != s || s > t.NS_MAX)
-        throw {
-          name: "Illegal argument",
-          message: "nside should be >0, power of 2, <" + t.NS_MAX
-        };
-      var i = 12 * s * s;
-      return i;
-    }),
-    (t.prototype.xyf2ring = function(s, i, n) {
-      var a,
-        e,
-        h,
-        r = t.JRLL[n] * this.nside - s - i - 1;
-      if (this.nside > r) {
-        a = r;
-        h = 2 * a * (a - 1);
-        e = 0
-      } else if (r > 3 * this.nside) {
-        a = this.nl4 - r;
-        h = this.npix - 2 * (a + 1) * a;
-        e = 0;
-      } else {
-        a = this.nside;
-          h = this.ncap + (r - this.nside) * this.nl4;
-          e = 1 & (r - this.nside);
-      }
-      var o = (t.JPLL[n] * a + s - i + 1 + e) / 2;
-      return (
-        o > this.nl4 ? (o -= this.nl4) : 1 > o && (o += this.nl4), h + o - 1
-      );
-    }),
-    (t.prototype.nest2ring = function(t) {
-      var s = this.nest2xyf(t),
-        i = this.xyf2ring(s.ix, s.iy, s.face_num);
-      return i;
-    }),
-    (t.prototype.corners_nest = function(t, s) {
-      var i = this.nest2ring(t);
-      return this.corners_ring(i, s);
-    }),
-    (t.prototype.pix2ang_ring = function(t) {
-      var s, i, n, a, e, h, r, o, c;
-      if (0 > t || t > this.npix - 1)
-        throw {
-          name: "Illegal argument",
-          message: "ipix out of range"
-        };
-      return (
-        (h = t + 1),
-        this.ncap >= h
-        ? ((o = h / 2),
-          (c = Utils.castToInt(o)),
-          (n = Utils.castToInt(Math.sqrt(o - Math.sqrt(c))) + 1),
-          (a = h - 2 * n * (n - 1)),
-          (s = Math.acos(1 - n * n * this.fact2)),
-          (i = ((a - 0.5) * Constants.PI) / (2 * n)))
-        : this.npix - this.ncap > t
-        ? ((e = t - this.ncap),
-          (n = e / this.nl4 + this.nside),
-          (a = (e % this.nl4) + 1),
-          (r = (1 & (n + this.nside)) > 0 ? 1 : 0.5),
-          (s = Math.acos((this.nl2 - n) * this.fact1)),
-          (i = ((a - r) * Constants.PI) / this.nl2))
-        : ((e = this.npix - t),
-          (n = Utils.castToInt(0.5 * (1 + Math.sqrt(2 * e - 1)))),
-          (a = 4 * n + 1 - (e - 2 * n * (n - 1))),
-          (s = Math.acos(-1 + Math.pow(n, 2) * this.fact2)),
-          (i = ((a - 0.5) * Constants.PI) / (2 * n))),
-        [s, i]
-      );
-    }),
-    (t.prototype.ring = function(t) {
-      var s,
-        i,
-        n = 0,
-        a = t + 1,
-        e = 0;
-      return (
-        this.ncap >= a
-        ? ((i = a / 2),
-          (e = Utils.castToInt(i)),
-          (n = Utils.castToInt(Math.sqrt(i - Math.sqrt(e))) + 1))
-        : this.nl2 * (5 * this.nside + 1) >= a
-        ? ((s = Utils.castToInt(a - this.ncap - 1)),
-          (n = Utils.castToInt(s / this.nl4 + this.nside)))
-        : ((s = this.npix - a + 1),
-          (i = s / 2),
-          (e = Utils.castToInt(i)),
-          (n = Utils.castToInt(Math.sqrt(i - Math.sqrt(e))) + 1),
-          (n = this.nl4 - n)),
-        n
-      );
-    }),
-    (t.prototype.integration_limits_in_costh = function(t) {
-      var s, i, n, a;
-      return (
-        (a = 1 * this.nside),
-        this.nside >= t
-        ? ((i = 1 - Math.pow(t, 2) / 3 / this.npface),
-          (n = 1 - Math.pow(t - 1, 2) / 3 / this.npface),
-          (s =
-            t == this.nside
-            ? (2 * (this.nside - 1)) / 3 / a
-            : 1 - Math.pow(t + 1, 2) / 3 / this.npface))
-        : this.nl3 > t
-        ? ((i = (2 * (2 * this.nside - t)) / 3 / a),
-          (n = (2 * (2 * this.nside - t + 1)) / 3 / a),
-          (s = (2 * (2 * this.nside - t - 1)) / 3 / a))
-        : ((n =
-          t == this.nl3
-          ? (2 * (-this.nside + 1)) / 3 / a
-          : -1 + Math.pow(4 * this.nside - t + 1, 2) / 3 / this.npface),
-          (s = -1 + Math.pow(this.nl4 - t - 1, 2) / 3 / this.npface),
-          (i = -1 + Math.pow(this.nl4 - t, 2) / 3 / this.npface)),
-        [n, i, s]
-      );
-    }),
-    (t.prototype.pixel_boundaries = function(t, s, i, n) {
-      var a,
-        e,
-        h,
-        r,
-        o,
-        c,
-        u,
-        p,
-        l = 1 * this.nside;
-      if (Math.abs(n) >= 1 - 1 / 3 / this.npface)
-        return (
-          (u = i * Constants.PIOVER2),
-          (p = (i + 1) * Constants.PIOVER2),
-          [u, p]
-        );
-      if (1.5 * n >= 1) {
-        a = Math.sqrt(3 * (1 - n));
-          e = 1 / l / a;
-          h = s;
-          r = h - 1;
-          o = t - s;
-          c = o + 1;
-          u = Constants.PIOVER2 * (Math.max(r * e, 1 - c * e) + i);
-          p = Constants.PIOVER2 * (Math.min(1 - o * e, h * e) + i);
-      } else if (1.5 * n > -1) {
-        var d = 0.5 * (1 - 1.5 * n),
-          f = d + 1,
-          I = this.nside + (t % 2);
-        h = s - (I - t) / 2;
-          r = h - 1;
-          o = (I + t) / 2 - s;
-          c = o + 1;
-          u = Constants.PIOVER2 * (Math.max(f - c / l, -d + r / l) + i);
-          p = Constants.PIOVER2 * (Math.min(f - o / l, -d + h / l) + i);
-      } else {
-        a = Math.sqrt(3 * (1 + n));
-        e = 1 / l / a;
-        var M = 2 * this.nside;
-        h = t - M + s;
-          r = h - 1;
-          o = M - s;
-          c = o + 1;
-        u =
-          Constants.PIOVER2 * (Math.max(1 - (M - r) * e, (M - c) * e) + i);
-        p =
-          Constants.PIOVER2 * (Math.min(1 - (M - h) * e, (M - o) * e) + i);
-      }
-      return [u, p];
-    }),
-    (t.vector = function(t, s) {
-      var i = 1 * Math.sin(t) * Math.cos(s),
-        n = 1 * Math.sin(t) * Math.sin(s),
-        a = 1 * Math.cos(t);
-      return new SpatialVector(i, n, a);
-    }),
-    (t.prototype.corners_ring = function(s, i) {
-      var n = 2 * i + 2,
-        a = Array(n),
-        e = this.pix2ang_ring(s),
-        h = Math.cos(e[0]),
-        r = e[0],
-        o = e[1],
-        c = Utils.castToInt(o / Constants.PIOVER2),
-        u = this.ring(s),
-        p = Math.min(u, Math.min(this.nside, this.nl4 - u)),
-        l = 0,
-        d = Constants.PIOVER2 / p;
-      l =
-        u >= this.nside && this.nl3 >= u
-        ? Utils.castToInt(o / d + (u % 2) / 2) + 1
-        : Utils.castToInt(o / d) + 1;
-        l -= c * p;
-      var f = n / 2,
-        I = this.integration_limits_in_costh(u),
-        M = Math.acos(I[0]),
-        y = Math.acos(I[2]),
-        g = this.pixel_boundaries(u, l, c, I[0]);
-      if (
-        ((a[0] = l > p / 2 ? t.vector(M, g[1]) : t.vector(M, g[0])),
-          (g = this.pixel_boundaries(u, l, c, I[2])),
-          (a[f] = l > p / 2 ? t.vector(y, g[1]) : t.vector(y, g[0])),
-          1 == i)
-      ) {
-        var P = Math.acos(I[1]);
-        g = this.pixel_boundaries(u, l, c, I[1]);
-          a[1] = t.vector(P, g[0]);
-          a[3] = t.vector(P, g[1]);
-      } else
-        for (var x = I[2] - I[0], C = x / (i + 1), v = 1; i >= v; v++) {
-          h = I[0] + C * v;
-            r = Math.acos(h);
-            g = this.pixel_boundaries(u, l, c, h);
-            a[v] = t.vector(r, g[0]);
-            a[n - v] = t.vector(r, g[1]);
+    static calculateNSide(pixsize) {
+        let i = 0;
+        const n = pixsize * pixsize;
+        const a = 180 / Constants.PI;
+        const e = 3600 * 3600 * 4 * Constants.PI * a * a;
+        const h = parseInt(e / n);
+        const r = h / 12;
+        const o = Math.sqrt(r);
+        let c = NS_MAX;
+        let u = 0;
+        for (let  p = 0; NSIDELIST.length > p; p++) {
+            if (c >= Math.abs(o - NSIDELIST[p])) {
+                c = Math.abs(o - NSIDELIST[p]);
+                i = NSIDELIST[p];
+                u = p;
+            }
+            if (o > i && NS_MAX > o) {
+                i = NSIDELIST[u + 1];
+            }
+            if (o > NS_MAX) {
+                console.log('nside cannot be bigger than ' + NS_MAX);
+                return NS_MAX;
+            }
         }
-      return a;
-    }),
-    (t.vec2Ang = function(t) {
-      var s = t.z / t.length(),
-        i = Math.acos(s),
-        n = 0;
-      return (
-        (0 != t.x || 0 != t.y) && (n = Math.atan2(t.y, t.x)),
-        0 > n && (n += 2 * Math.PI),
-        [i, n]
-      );
-    }),
-    (t.prototype.queryDisc = function(s, i, n, a) {
-      if (0 > i || i > Constants.PI)
-        throw {
-          name: "Illegal argument",
-          message: "angular radius is in RADIAN and should be in [0,pi]"
-        };
-      var e,
-        h,
-        r,
-        o,
-        c,
-        u,
-        p,
-        l,
-        d,
-        f,
-        I,
-        M,
-        y,
-        g,
-        P,
-        x,
-        C,
-        v,
-        _,
-        R = new LongRangeSetBuilder(),
-        T = null,
-        c = i;
-      if (
-        (a && (c += Constants.PI / this.nl4),
-          (T = t.vec2Ang(s)),
-          (u = T[0]),
-          (p = T[1]),
-          (I = this.fact2),
-          (M = this.fact1),
-          (o = Math.cos(u)),
-          (_ = 1 / Math.sqrt((1 - o) * (1 + o))),
-          (g = u - c),
-          (P = u + c),
-          (l = Math.cos(c)),
-          (C = Math.cos(g)),
-          (e = this.ringAbove(C) + 1),
-          (x = Math.cos(P)),
-          (h = this.ringAbove(x)),
-          e > h && 0 == h && (h = e),
-          0 >= g)
-      )
-        for (var m = 1; e > m; ++m) this.inRing(m, 0, Math.PI, R);
-      for (r = e; h >= r; ++r)
-        (v =
-          (this.nside > r
-          ? 1 - r * r * I
-          : this.nl3 >= r
-          ? (this.nl2 - r) * M
-          : (-1 + (this.nl4 - r) * (this.nl4 - r) * I),
-          (d = (l - v * o) * _),
-          (f = 1 - v * v - d * d),
-          (y = Math.atan2(Math.sqrt(f), d)),
-          isNaN(y) && (y = c),
-          this.inRing(r, p, y, R)));
-      if (P >= Math.PI)
-        for (var m = h + 1; this.nl4 > m; ++m)
-          this.inRing(m, 0, Math.PI, R, !1);
-      var b;
-      if (n) {
-        for (var S = R.items, U = [], A = 0; S.length > A; A++) {
-          var O = this.ring2nest(S[A]);
-          U.indexOf(O) >= 0 || U.push(O);
-        }
-        b = U;
-      } else b = R.items;
-      return b;
-    }),
-    (t.prototype.inRing = function(t, s, i, n, a) {
-      var e,
-        h,
-        r,
-        o,
-        c = !1,
-        u = !1,
-        p = 1e-12,
-        l = 0,
-        d = 0,
-        f = 0,
-        I = 0,
-        M = ((s - i) % Constants.TWOPI) - p,
-        y = s + i + p,
-        g = ((s + i) % Constants.TWOPI) + p;
-      if (
-        (p > Math.abs(i - Constants.PI) && (c = !0),
-          t >= this.nside && this.nl3 >= t
-          ? ((d = t - this.nside + 1),
-            (r = this.ncap + this.nl4 * (d - 1)),
-            (o = r + this.nl4 - 1),
-            (e = d % 2),
-            (h = this.nl4))
-          : (this.nside > t
-            ? ((d = t), (r = 2 * d * (d - 1)), (o = r + 4 * d - 1))
-            : ((d = 4 * this.nside - t),
-              (r = this.npix - 2 * d * (d + 1)),
-              (o = r + 4 * d - 1)),
-            (h = 4 * d),
-            (e = 1)),
-          c)
-      )
-        return n.appendRange(r, o), void 0;
-      if ((l = e / 2), a) {
-        f = Math.round((h * M) / Constants.TWOPI - l);
-          I = Math.round((h * y) / Constants.TWOPI - l);
-          f %= h;
-          I > h && (I %= h);
-    } else {
-        if (
-          ((f = Math.ceil((h * M) / Constants.TWOPI - l)),
-            (I = Utils.castToInt((h * g) / Constants.TWOPI - l)),
-            f > I &&
-            1 == t &&
-            (I = Utils.castToInt((h * y) / Constants.TWOPI - l)),
-            f == I + 1 && (f = I),
-            1 == f - I && Constants.PI > i * h)
-        )
-          return (
-            console.log("the interval is too small and avay from center"),
-            void 0
-          );
-        f = Math.min(f, h - 1);
-        I = Math.max(I, 0);
-      }
-      if ((f > I && (u = !0), u)) {
-        f += r;
-        I += r;
-        n.appendRange(r, I);
-        n.appendRange(f, o);
-      } else {
-        if (0 > f)
-          return (
-            (f = Math.abs(f)),
-            n.appendRange(r, r + I),
-            n.appendRange(o - f + 1, o),
-            void 0
-          );
-        f += r; I += r; n.appendRange(f, I);
-      }
-    }),
-    (t.prototype.ringAbove = function(t) {
-      var s = Math.abs(t);
-      if (s > Constants.TWOTHIRD) {
-        var i = Utils.castToInt(this.nside * Math.sqrt(3 * (1 - s)));
-        return t > 0 ? i : 4 * this.nside - i - 1;
-      }
-      return Utils.castToInt(this.nside * (2 - 1.5 * t));
-    }),
-    (t.prototype.ring2nest = function(t) {
-      var s = this.ring2xyf(t);
-      return this.xyf2nest(s.ix, s.iy, s.face_num);
-    }),
-    (t.prototype.ring2xyf = function(s) {
-      var i,
-        n,
-        a,
-        e,
-        h = {};
-      if (this.ncap > s) {
-        i = Utils.castToInt(0.5 * (1 + Math.sqrt(1 + 2 * s)));
-          n = s + 1 - 2 * i * (i - 1);
-          a = 0;
-          e = i;
-          h.face_num = 0;
-        var r = n - 1;
-        // r >= 2 * i && ((h.face_num = 2), (r -= 2 * i)),
-          r >= i && ++h.face_num;
-      } else if (this.npix - this.ncap > s) {
-        var o = s - this.ncap;
-        // this.order >= 0
-        //   ? ((i = (o >> (this.order + 2)) + this.nside),
-        //     (n = (o & (this.nl4 - 1)) + 1))
-        //   : ((i = o / this.nl4 + this.nside), (n = (o % this.nl4) + 1)),
-        //   (a = 1 & (i + this.nside)),
-        //   (e = this.nside);
-        var c,
-          u,
-          p = i - this.nside + 1,
-          l = this.nl2 + 2 - p;
-      //   this.order >= 0
-      //     ? ((c =
-      //       (n - Utils.castToInt(p / 2) + this.nside - 1) >> this.order),
-      //       (u = (n - Utils.castToInt(l / 2) + this.nside - 1) >> this.order))
-      //     : ((c = (n - Utils.castToInt(p / 2) + this.nside - 1) / this.nside),
-      //       (u = (n - Utils.castToInt(l / 2) + this.nside - 1) / this.nside)),
-      //     (h.face_num =
-      //       u == c
-      //       ? 4 == u
-      //       ? 4
-      //       : Utils.castToInt(u) + 4
-      //       : c > u
-      //       ? Utils.castToInt(u)
-      //       : Utils.castToInt(c) + 8);
-      } else {
-        var o = this.npix - s;
-        // (i = Utils.castToInt(0.5 * (1 + Math.sqrt(2 * o - 1)))),
-        //   (n = 4 * i + 1 - (o - 2 * i * (i - 1))),
-        //   (a = 0),
-        //   (e = i),
-        //   (i = 2 * this.nl2 - i),
-          (h.face_num = 8);
-        var r = n - 1;
-        // r >= 2 * e && ((h.face_num = 10), (r -= 2 * e));
-        r >= e && ++h.face_num;
-      }
-      var d = i - t.JRLL[h.face_num] * this.nside + 1,
-        f = 2 * n - t.JPLL[h.face_num] * e - a - 1;
-      return (
-        f >= this.nl2 && (f -= 8 * this.nside),
-        (h.ix = (f - d) >> 1),
-        (h.iy = -(f + d) >> 1),
-        h
-      );
-    }),
-    t
-  );
-})()
+        return i;
+    }
+    static nside2order(nside) {
+        return (nside & nside - 1) > 0 ? -1 : parseInt(Math.log2(nside));
+    }
 
-export default HealpixIndex;
+    ang2pix_nest(theta, phi) {
+        let  tp, o, c, jp, jm, ntt, face_num, ix, iy;
+        phi >= Constants.TWOPI && (phi -= Constants.TWOPI);
+        0 > phi && (phi += Constants.TWOPI);
+        if (theta > Constants.PI || 0 > theta) {
+            throw {
+                name: 'Illegal argument',
+                message: 'theta must be between 0 and ' + Constants.PI
+            };
+        }
+        if (0 > phi) {
+            throw {
+                name: 'Illegal argument',
+                message: 'phi must be between 0 and ' + Constants.TWOPI
+            };
+        }
+        const z = Math.cos(theta);
+        const za = Math.abs(z);
+        const tt = phi / Constants.PIOVER2;
+        if (Z0 >= za) { //Equatorial region
+            const M = this.nside * (.5 + tt);
+            const y = this.nside * .75 * z;
+            const u = M - y;
+            const p = M + y;
+            // o = u >>> this.order;
+            // c = p >>> this.order;
+            o = shiftRight(u,this.order);
+            c = shiftRight(p, this.order);
+            face_num = o===c ?
+                4===o ?
+                    4 :
+                    o + 4 :
+                c > o ?
+                    o :
+                    c + 8;
+            ix = parseInt(p & this.nside - 1);
+            iy = parseInt(this.nside - (u & this.nside - 1) - 1);
+        } else { // polar region, za > 2/3
+            ntt = parseInt(tt);
+            if (ntt >= 4) ntt = 3;
+            tp = tt - ntt;
+            const tmp = this.nside * Math.sqrt(3 * (1 - za));
+            //   (the index of edge lines increase when distance from the closest pole goes up)
+            jp = parseInt(tp * tmp);
+            jm = parseInt((1 - tp) * tmp);
+            jp = Math.min(NS_MAX - 1, jp);
+            jm = Math.min(NS_MAX - 1, jm);
+            // finds the face and pixel's (x,y)
+            if (z>=0) {
+                face_num = ntt; // in {0,3}
+                ix = parseInt(this.nside - jm - 1);
+                iy = parseInt(this.nside - jp - 1);
+            }
+            else {
+                face_num = ntt + 8; // in {8,11}
+                ix = jp;
+                iy = jm;
+            }
+        }
+        return this.xyf2nest(ix, iy, face_num);
+    }
+
+    xyf2nest(ix, iy, face_num) {
+        // const nest= (face_num << 2 * this.order) +
+        //     (this.utab[255 & ix] |
+        //         this.utab[255 & ix >>> 8] * Math.pow(2,16) |
+        //         this.utab[255 & ix >>> 16] * Math.pow(2,32)|
+        //         this.utab[255 & ix >>> 24] * Math.pow(2,48)|
+        //         this.utab[255 & iy] << 1 |
+        //         this.utab[255 & iy >>> 8] * Math.pow(2,17) |
+        //         this.utab[255 & iy >>> 16] * Math.pow(2,33) |
+        //         this.utab[255 & iy >>> 24] * Math.pow(2,49));
+        const nest= shiftLeft(face_num, 2 * this.order) +
+            orAll(UTAB[255 & ix] ,
+                shiftLeft(UTAB[bigAnd(255, shiftRight(ix, 8))], 16) ,
+                shiftLeft(UTAB[bigAnd(255, shiftRight(ix, 16))], 32),
+                shiftLeft(UTAB[bigAnd(255, shiftRight(ix, 24))], 48),
+                shiftLeft(UTAB[bigAnd(255, iy)], 1) ,
+                shiftLeft(UTAB[bigAnd(255, shiftRight(iy, 8))], 17) ,
+                shiftLeft(UTAB[bigAnd(255, shiftRight(iy, 16))], 33) ,
+                shiftLeft(UTAB[bigAnd(255, shiftRight(iy, 24))], 49));
+        // if (nest>0x7FFFFFF) {
+        //     console.log('xyf2nest: nest greater');
+        // }
+        return nest;
+    }
+
+    nest2xyf(ipix) {
+        // if (ipix>0x7FFFFFF) {
+        //     console.log('nest2xyf: ipix greater');
+        // }
+        const s = {};
+        s.face_num = shiftRight(ipix,2 * this.order);
+        let i = bigAnd(ipix, this.npface - 1);
+        // n = (93823560581120 & i) >>> 16 | (614882086624428e4 & i) >>> 31 | 21845 & i | (1431633920 & i) >>> 15;
+        let n = orAll(shiftRight(bigAnd(0x555500000000,i),16),
+                      shiftRight(bigAnd(0x5555000000000000,  i),31),
+                      bigAnd(0x5555, i),
+                      shiftRight(bigAnd(0x55550000,i),15));
+
+        // s.ix = this.ctab[255 & n] | this.ctab[255 & n >>> 8] << 4 | this.ctab[255 & n >>> 16] << 16 | this.ctab[255 & n >>> 24] << 20;
+        s.ix = orAll(CTAB[bigAnd(255, n)],
+                           shiftLeft(CTAB[255 & shiftRight(n,8)], 4),
+                           shiftLeft(CTAB[255 & shiftRight(n,16)], 16),
+                           shiftLeft(CTAB[255 & shiftRight(n,24)], 20));
+
+        i= shiftRight(i,1);
+        // n = (93823560581120 & i) >>> 16 | (614882086624428e4 & i) >>> 31 | 21845 & i | (1431633920 & i) >>> 15;
+        n = orAll(shiftRight(bigAnd(0x555500000000,i), 16),
+                        shiftRight(bigAnd(0x5555000000000000, i), 31),
+                        bigAnd(0x5555, i),
+                        shiftRight(bigAnd(0x55550000,i),15));
+
+        // s.iy = this.ctab[255 & n] | this.ctab[255 & n >>> 8] << 4 | this.ctab[255 & n >>> 16] << 16 | this.ctab[255 & n >>> 24] << 20;
+        s.iy = orAll(CTAB[bigAnd(255, n)],
+                           shiftLeft(CTAB[255 & shiftRight(n, 8)], 4),
+                           shiftLeft(CTAB[255 & shiftRight(n, 16)], 16),
+                           shiftLeft(CTAB[255 & shiftRight(n,24)], 20));
+        return  s;
+    }
+    pix2ang_nest(ipix) {
+        if (0 > ipix || ipix > this.npix - 1) {
+            throw {
+                name: 'Illegal argument',
+                message: 'ipix out of range'
+            };
+        }
+        let nr, z, kshift;
+        const e = this.nest2xyf(ipix);
+        const h = e.ix;
+        const r = e.iy;
+        const o = e.face_num;
+        const jr = (JRLL[o] << this.order) - h - r - 1;
+        if (this.nside > jr) {
+            nr = jr;
+            z = 1 - nr * nr * this.fact2;
+            kshift = 0;
+        }
+        else if (jr > this.nl3 ) {
+            nr = this.nl4 - jr;
+            z = nr * nr * this.fact2 - 1;
+            kshift = 0;
+        }
+        else {
+            nr = this.nside;
+            z = (this.nl2 - jr) * this.fact1;
+            kshift = 1 & jr - this.nside;
+
+        }
+        const theta = Math.acos(z);
+        let jp = (JPLL[o] * nr + h - r + 1 + kshift) / 2;
+        jp > this.nl4 && (jp -= this.nl4);
+        1 > jp && (jp += this.nl4);
+        const phi = (jp - .5 * (kshift + 1)) * (Constants.PIOVER2 / nr);
+        return { theta, phi };
+    }
+    static nside2Npix(nside) {
+        if (0 > nside || (nside & -nside) !==nside || nside > NS_MAX) {
+            throw {
+                name: 'Illegal argument',
+                message: 'nside should be >0, power of 2, <' + NS_MAX
+            };
+        }
+        const i = 12 * nside * nside;
+        return i;
+    }
+    xyf2ring(ix, iy, face_num) {
+        let nr, kshift, startpix;
+        const r = JRLL[face_num] * this.nside - ix - iy - 1;
+
+        if (this.nside > r) {
+            nr = r;
+            startpix = 2 * nr * (nr - 1);
+            kshift = 0;
+        }
+        else if (r > 3 * this.nside) {
+            nr = this.nl4 - r;
+            startpix = this.npix - 2 * (nr + 1) * nr;
+            kshift = 0;
+        }
+        else {
+            nr = this.nside;
+            startpix = this.ncap + (r - this.nside) * this.nl4;
+            kshift = 1 & r - this.nside;
+        }
+
+
+        let jp = (JPLL[face_num] * nr + ix - iy + 1 + kshift) / 2;
+        if (jp > this.nl4) {
+            jp -= this.nl4;
+        } else if (1 > jp){
+            jp += this.nl4;
+        }
+        return startpix + jp - 1;
+    }
+    nest2ring(ipnest) {
+        const s = this.nest2xyf(ipnest);
+        const i = this.xyf2ring(s.ix, s.iy, s.face_num);
+        return i;
+    }
+    corners_nest(ipix, step) {
+        const i = this.nest2ring(ipix);
+        return this.corners_ring(i, step);
+    }
+    pix2ang_ring(ipix) {
+        let theta, phi, iring, iphi, ip,  fodd, hip, fihip;
+        if (0 > ipix || ipix > this.npix - 1) {
+            throw {
+                name: 'Illegal argument',
+                message: 'ipix out of range'
+            };
+        }
+        const ipix1 = ipix + 1; // in {1, npix}
+
+
+
+        if (this.ncap >= ipix1) {
+
+            hip = ipix1 / 2;
+            fihip = parseInt(hip);
+            iring = parseInt(Math.sqrt(hip - Math.sqrt(fihip))) + 1;
+            iphi = ipix1 - 2 * iring * (iring - 1);
+            theta = Math.acos(1 - iring * iring * this.fact2);
+            phi = (iphi - .5) * Constants.PI / (2 * iring);
+        }
+        else {
+            if (this.npix - this.ncap > ipix ) {
+                ip = ipix - this.ncap;
+                iring = ip / this.nl4 + this.nside;
+                iphi = ip % this.nl4 + 1;
+                fodd = bigAnd(1, iring + this.nside) > 0 ? 1 : .5;
+                theta = Math.acos((this.nl2 - iring) * this.fact1);
+                phi = (iphi - fodd) * Constants.PI / this.nl2;
+            }
+            else {
+                ip = this.npix - ipix;
+                iring = parseInt(.5 * (1 + Math.sqrt(2 * ip - 1)));
+                iphi = 4 * iring + 1 - (ip - 2 * iring * (iring - 1));
+                theta = Math.acos(-1 + Math.pow(iring, 2) * this.fact2);
+                phi = (iphi - .5) * Constants.PI / (2 * iring);
+            }
+        }
+        return [theta, phi];
+    }
+    ring(ipix) {
+        let s, i, n = 0;
+        const a = ipix + 1;
+        let   e = 0;
+
+        if (this.ncap >= a ) {
+            i = a / 2;
+            e = parseInt(i);
+            n = parseInt(Math.sqrt(i - Math.sqrt(e))) + 1;
+        }
+        else if (this.nl2 * (5 * this.nside + 1) >= a ) {
+            s = parseInt(a - this.ncap - 1);
+            n = parseInt(s / this.nl4 + this.nside);
+        }
+        else {
+            s = this.npix - a + 1;
+            i = s / 2;
+            e = parseInt(i);
+            n = parseInt(Math.sqrt(i - Math.sqrt(e))) + 1;
+            n = this.nl4 - n;
+        }
+        return n;
+    }
+    integration_limits_in_costh(i_th) {
+        let s, i, n;
+        const a = 1 * this.nside;
+
+        if (this.nside >= i_th) {
+            i = 1 - Math.pow(i_th, 2) / 3 / this.npface;
+            n = 1 - Math.pow(i_th - 1, 2) / 3 / this.npface;
+            s = (i_th===this.nside) ? 2 * (this.nside - 1) / 3 / a : 1 - Math.pow(i_th + 1, 2) / 3 / this.npface;
+
+        }
+        else if (this.nl3 > i_th) {
+            i = 2 * (2 * this.nside - i_th) / 3 / a;
+            n = 2 * (2 * this.nside - i_th + 1) / 3 / a;
+            s = 2 * (2 * this.nside - i_th - 1) / 3 / a;
+        }
+        else  {
+            n = i_th===this.nl3 ?
+                2 * (-this.nside + 1) / 3 / a :
+                -1 + Math.pow(4 * this.nside - i_th + 1, 2) / 3 / this.npface;
+            s = -1 + Math.pow(this.nl4 - i_th - 1, 2) / 3 / this.npface;
+            i = -1 + Math.pow(this.nl4 - i_th, 2) / 3 / this.npface;
+        }
+        return [n, i, s];
+    }
+    pixel_boundaries(i_th, i_phi, i_zone, cos_theta) {
+        let sq3th, factor, jd, ju, ku, kd, phi_l, phi_r;
+        const r_n_nside = 1 * this.nside;
+        if (Math.abs(cos_theta) >= 1 - 1 / 3 / this.npface) {
+            phi_l = i_zone * Constants.PIOVER2;
+            phi_r = (i_zone + 1) * Constants.PIOVER2;
+            return [phi_l, phi_r];
+        }
+        if (1.5 * cos_theta >= 1) {
+            sq3th = Math.sqrt(3 * (1 - cos_theta));
+            factor = 1 / r_n_nside / sq3th;
+            jd = i_phi;
+            ju = jd - 1;
+            ku = i_th - i_phi;
+            kd = ku + 1;
+            phi_l = Constants.PIOVER2 * (Math.max(ju * factor, 1 - kd * factor) + i_zone);
+            phi_r = Constants.PIOVER2 * (Math.min(1 - ku * factor, jd * factor) + i_zone);
+        }
+        else if (1.5 * cos_theta > -1) {
+            const cth34 = .5 * (1 - 1.5 * cos_theta);
+            const cth34_1 = cth34 + 1;
+            const modfactor = this.nside + i_th % 2;
+            jd = i_phi - (modfactor - i_th) / 2;
+            ju = jd - 1;
+            ku = (modfactor + i_th) / 2 - i_phi;
+            kd = ku + 1;
+            phi_l = Constants.PIOVER2 * (Math.max(cth34_1 - kd / r_n_nside, -cth34 + ju / r_n_nside) + i_zone);
+            phi_r = Constants.PIOVER2 * (Math.min(cth34_1 - ku / r_n_nside, -cth34 + jd / r_n_nside) + i_zone);
+        } else {
+            sq3th = Math.sqrt(3 * (1 + cos_theta));
+            factor = 1 / r_n_nside / sq3th;
+            const M = 2 * this.nside;
+            jd = i_th - M + i_phi;
+            ju = jd - 1;
+            ku = M - i_phi;
+            kd = ku + 1;
+            phi_l = Constants.PIOVER2 * (Math.max(1 - (M - ju) * factor, (M - kd) * factor) + i_zone);
+            phi_r = Constants.PIOVER2 * (Math.min(1 - (M - jd) * factor, (M - ku) * factor) + i_zone);
+        }
+        return [phi_l, phi_r];
+    }
+    static vector(theta, phi) {
+        const x = Math.sin(theta) * Math.cos(phi);
+        const y = Math.sin(theta) * Math.sin(phi);
+        const z = Math.cos(theta);
+        return new SpatialVector(x, y, z);
+    }
+
+    corners_ring(pix, step) {
+        const n = 2 * step + 2;
+        const res = Array(n);
+        const e = this.pix2ang_ring(pix);
+        let h = Math.cos(e[0]);
+        let r = e[0];
+        const o = e[1];
+        const c = parseInt(o / Constants.PIOVER2);
+        const u = this.ring(pix);
+        const p = Math.min(u, Math.min(this.nside, this.nl4 - u));
+        const d = Constants.PIOVER2 / p;
+        let l = (u >= this.nside && this.nl3 >= u) ?
+            parseInt(o / d + u % 2 / 2) + 1 :
+            parseInt(o / d) + 1;
+        l -= c * p;
+        const f = n / 2;
+        const I = this.integration_limits_in_costh(u);
+        const M = Math.acos(I[0]);
+        const y = Math.acos(I[2]);
+        let g = this.pixel_boundaries(u, l, c, I[0]);
+        res[0] = l > p / 2 ? HealpixIndex.vector(M, g[1]) : HealpixIndex.vector(M, g[0]);
+        g = this.pixel_boundaries(u, l, c, I[2]);
+        res[f] = l > p / 2 ? HealpixIndex.vector(y, g[1]) : HealpixIndex.vector(y, g[0]);
+        if (1===step) {
+            const P = Math.acos(I[1]);
+            g = this.pixel_boundaries(u, l, c, I[1]);
+            res[1] = HealpixIndex.vector(P, g[0]);
+            res[3] = HealpixIndex.vector(P, g[1]);
+        }
+        else {
+            const x = I[2] - I[0];
+            const C = x / (step + 1);
+            for (let v = 1; step >= v; v++) {
+                h = I[0] + C * v;
+                r = Math.acos(h);
+                g = this.pixel_boundaries(u, l, c, h);
+                res[v] = HealpixIndex.vector(r, g[0]);
+                res[n - v] = HealpixIndex.vector(r, g[1]);
+            }
+        }
+        return res;
+    }
+    static vec2Ang(spatialVector) {
+        const s = spatialVector.z / spatialVector.length();
+        const i = Math.acos(s);
+        let n = 0;
+        if (0 !==spatialVector.x || 0 !==spatialVector.y) {
+            n = Math.atan2(spatialVector.y, spatialVector.x);
+        }
+        if (0 > n) {
+            n += 2 * Math.PI;
+        }
+        return [i, n];
+    }
+
+    /**
+     * Returns a range set of pixels whose centers lie within a given disk. <p>
+     *  This method is more efficient in the RING scheme.
+     *  @param {SpatialVector} spatialVector the angular coordinates of the disk center
+     *  @param {number} radius the radius (in radians) of the disk
+     *  @param {boolean} nest true if nest, false if ring
+     *  @param {boolean} inclusive
+     *  @return {Array.<number> }the requested set of pixel number ranges
+     */
+    queryDisc(spatialVector, radius, nest, inclusive) {
+        if (0 > radius || radius > Constants.PI) {
+            throw {
+                name: 'Illegal argument',
+                message: 'angular radius is in RADIAN and should be in [0,pi]'
+            };
+        }
+        let d, f, y, v;
+        const pixset = new LongRangeSetBuilder;
+
+        const rsmall = inclusive ? (radius + (Constants.PI / this.nl4)) : radius;
+        const [theta,phi]= HealpixIndex.vec2Ang(spatialVector);
+        const z0 = Math.cos(theta);
+        const xa = 1 / Math.sqrt((1 - z0) * (1 + z0));
+        const rlat1 = theta - rsmall;
+        const rlat2 = theta + rsmall;
+        const cosrsmall = Math.cos(rsmall);
+        const zmax = Math.cos(rlat1);
+        const irmin = this.ringAbove(zmax) + 1;
+        const zmin = Math.cos(rlat2);
+        let h = this.ringAbove(zmin);
+        if (irmin > h && 0===h ) h= irmin;
+        if (0 >= rlat1) {
+            for (let m = 1; irmin > m; ++m) {
+                this.inRing(m, 0, Math.PI, pixset);
+            }
+        }
+        for (let iz = irmin; h >= iz; ++iz) {
+            v = this.nside > iz ?
+                1 - iz * iz * this.fact2 :
+                this.nl3 >= iz ?
+                    (this.nl2 - iz) * this.fact1 :
+                    -1 + (this.nl4 - iz) * (this.nl4 - iz) * this.fact2;
+            d = (cosrsmall - v * z0) * xa;
+            f = 1 - v * v - d * d;
+            y = Math.atan2(Math.sqrt(f), d);
+            if (isNaN(y)) y = rsmall;
+            this.inRing(iz, phi, y, pixset);
+        }
+        if (rlat2 >= Math.PI) {
+            for (let m = h + 1; this.nl4 > m; ++m) this.inRing(m, 0, Math.PI, pixset, false);
+        }
+
+        if (nest) {
+            const nestPixset = [];
+            for (let i = 0; pixset.items.length > i; i++) {
+                const nestPix = this.ring2nest(pixset.items[i]);
+                nestPixset.indexOf(nestPix) >= 0 || nestPixset.push(nestPix);
+            }
+            // console.log(retPixAry);
+            return nestPixset;
+        }
+        else {
+            return pixset.items;
+        }
+    }
+
+    inRing(iz, phi0, dphi, nest, conservative) {
+        let e, h, r, o, c = false, d = 0, f = 0, I = 0, u;
+        const p = 1e-12;
+        const M = (phi0 - dphi) % Constants.TWOPI - p;
+        const y = phi0 + dphi + p;
+        const g = (phi0 + dphi) % Constants.TWOPI + p;
+
+        if (p > Math.abs(dphi - Constants.PI)) c = true;
+
+        if (iz >= this.nside && this.nl3 >= iz) {
+            d = iz - this.nside + 1;
+            r = this.ncap + this.nl4 * (d - 1);
+            o = r + this.nl4 - 1;
+            e = d % 2;
+            h = this.nl4;
+        }
+        else {
+            if (this.nside > iz) {
+                d = iz;
+                r = 2 * d * (d - 1);
+                o = r + 4 * d - 1;
+            }
+            else {
+                d = 4 * this.nside - iz;
+                r = this.npix - 2 * d * (d + 1);
+                o = r + 4 * d - 1;
+            }
+            h = 4 * d;
+            e = 1;
+        }
+
+        if (c) {
+            nest.appendRange(r, o);
+            return;
+        }
+        const l= e/2;
+        if (conservative) {
+            f = Math.round(h * M / Constants.TWOPI - l);
+            I = Math.round(h * y / Constants.TWOPI - l); f %= h;
+            I > h && (I %= h);
+        }
+        else {
+            f = Math.ceil(h * M / Constants.TWOPI - l);
+            I = parseInt(h * g / Constants.TWOPI - l);
+            f > I && 1===iz && (I = parseInt(h * y / Constants.TWOPI - l));
+            f===(I + 1) && (f = I);
+            if (1===(f - I) && Constants.PI > dphi * h) {
+                console.log('the interval is too small and away from center');
+                return undefined;
+            }
+            f = Math.min(f, h - 1);
+            I = Math.max(I, 0);
+        }
+        f > I && (u = true);
+        if (u) {
+            f += r;
+            I += r;
+            nest.appendRange(r, I);
+            nest.appendRange(f, o);
+        }
+        else {
+            if (0 > f) {
+                f = Math.abs(f);
+                nest.appendRange(r, r + I);
+                nest.appendRange(o - f + 1, o);
+                return;
+            }
+            f += r;
+            I += r;
+            nest.appendRange(f, I);
+        }
+    }
+
+    ringAbove(z) {
+        const az = Math.abs(z);
+        if (az > Constants.TWOTHIRD) {
+            const iring = parseInt(this.nside * Math.sqrt(3 * (1 - az)));
+            return z > 0 ? iring : 4 * this.nside - iring - 1;
+        }
+        return parseInt(this.nside * (2 - 1.5 * z));
+    }
+
+    ring2nest(ipRing) {
+        const xyf = this.ring2xyf(ipRing);
+        const nest=  this.xyf2nest(xyf.ix, xyf.iy, xyf.face_num);
+        return nest;
+    }
+
+    ring2xyf(pix) {
+        let iring, iphi, kshift, nr;
+        const ret = {}; // Xyf
+        if (this.ncap > pix) { // North Polar cap
+            iring = parseInt(.5 * (1 + Math.sqrt(1 + 2 * pix)));
+            iphi = pix + 1 - 2 * iring * (iring - 1);
+            kshift = 0;
+            nr = iring;
+             ret.face_num = 0;
+            let r = iphi - 1;
+            if (r >= 2 * iring) {
+                 ret.face_num = 2;
+                r -= 2 * iring;
+            }
+            r >= iring && ++ ret.face_num;
+        } else if (this.npix - this.ncap > pix) {  // Equatorial region
+            const ip = pix - this.ncap;
+            if (this.order >= 0)  {
+                iring = shiftRight(ip,this.order + 2) + this.nside;
+                // iphi = (ip & this.nl4 - 1) + 1;
+                iphi = bigAnd(ip, this.nl4 - 1) + 1;
+            } else {
+                iring = ip / this.nl4 + this.nside;
+                iphi = ip % this.nl4 + 1;
+            }
+            kshift = bigAnd(1 , iring + this.nside);
+            nr = this.nside;
+            let c, u;
+            const ire = iring - this.nside + 1;
+            const irm = this.nl2 + 2 - ire;
+            if (this.order>=0) {
+                c = shiftRight(iphi - parseInt(ire / 2) + this.nside - 1, this.order);
+                u = shiftRight(iphi - parseInt(irm / 2) + this.nside - 1,this.order);
+            }
+            else {
+                c = (iphi - parseInt(ire / 2) + this.nside - 1) / this.nside;
+                u = (iphi - parseInt(irm / 2) + this.nside - 1) / this.nside;
+            }
+            if (u===c) {
+                 ret.face_num= 4===u ? 4 : parseInt(u) + 4;
+            }
+            else  {
+                 ret.face_num=c > u ? parseInt(u) : parseInt(c) + 8;
+            }
+        } else {  // South Polar cap
+            const ip = this.npix - pix;
+            iring = parseInt(.5 * (1 + Math.sqrt(2 * ip - 1)));
+            iphi = 4 * iring + 1 - (ip - 2 * iring * (iring - 1));
+            kshift = 0;
+            nr = iring;
+            iring = 2 * this.nl2 - iring;
+             ret.face_num = 8;
+            let r = iphi - 1;
+            if (r >= 2 * nr) {
+                 ret.face_num = 10;
+                r -= 2 * nr;
+            }
+            r >= nr && ++ ret.face_num;
+        }
+        const d = iring - JRLL[ ret.face_num] * this.nside + 1;
+        let f = 2 * iphi - JPLL[ ret.face_num] * nr - kshift - 1;
+        f >= this.nl2 && (f -= 8 * this.nside);
+        // ret.ix = f - d >>> 1;
+        //  ret.iy = -(f + d) >>> 1;
+         ret.ix = shiftRight(f - d, 1);
+         ret.iy = shiftRight(-(f + d),1);
+        return  ret;
+    }
+}
+
