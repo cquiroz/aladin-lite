@@ -173,4 +173,4 @@ let catalogHiPS = function(rootURL, options) {
 };
 
 
-export {catalog, marker, catalogFromURL, footprintsFromSTCS, aladin};
+export {circle, catalog, marker, catalogFromURL, footprintsFromSTCS, source, aladin};

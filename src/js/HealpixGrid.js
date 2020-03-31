@@ -29,7 +29,7 @@
  *****************************************************************************/
 
 const HealpixGrid = (function() {
-	var HealpixGrid = function() {
+	const HealpixGrid = function() {
 	};
 
 	HealpixGrid.prototype.redraw = function(ctx, cornersXYViewMap, fov, norder) {
@@ -37,9 +37,9 @@ const HealpixGrid = (function() {
 		ctx.lineWidth = 1;
 		ctx.strokeStyle = "rgb(150,150,220)";
 		ctx.beginPath();
-    var ipix=0;
-		var cornersXYView;
-		for (var k=0, len=cornersXYViewMap.length; k<len; k++) {
+    let ipix=0;
+		let cornersXYView;
+		for (let k=0, len=cornersXYViewMap.length; k<len; k++) {
 			cornersXYView = cornersXYViewMap[k];
 			ipix = cornersXYView.ipix;
 

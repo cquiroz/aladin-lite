@@ -34,8 +34,7 @@ import Footprint from './Footprint';
 import CooFrameEnum from './CooFrameEnum';
 import CooConversion from './CooConversion';
 import AladinUtils from './AladinUtils';
-import cds from './cds';
-var A = cds.A;
+import * as A from './A';
 
 const Overlay = (function() {
    const Overlay = function(options) {

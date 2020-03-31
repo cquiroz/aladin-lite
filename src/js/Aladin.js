@@ -30,7 +30,6 @@
 import $ from 'jquery';
 import CooFrameEnum from './CooFrameEnum';
 import Coo from './coo';
-import URLBuilder from './URLBuilder';
 import AladinUtils from './AladinUtils';
 import HpxImageSurvey from './HpxImageSurvey';
 import CooConversion from './CooConversion';
@@ -39,36 +38,28 @@ import Overlay from './Overlay';
 import View from './View';
 import Logger from './Logger';
 import Location from './Location';
-import SpatialVector from './SpatialVector';
-import HealpixCache from './HealpixCache';
-import HealpixIndex from './HealpixIndex';
 import Utils from './Utils';
 import ProjectionEnum from './ProjectionEnum';
-import MOC from './MOC';
 import ProgressiveCat from './ProgressiveCat';
-import Circle from './Circle';
 import Color from './Color';
 import ColorMap from './ColorMap';
-import Footprint from './Footprint';
 import Box from './Box';
-import Polyline from './Polyline';
 import Sesame from './Sesame';
+import Source from './Source';
 import * as A from './A';
-var cds = require("./cds");
-// var A = cds.A;
 
 const Aladin = (function() {
     const urlParam = function(name, queryString){
         if (queryString===undefined) {
           queryString = window.location.search;
         }
-      return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(queryString)||[,""])[1].replace(/\+/g, '%20'))||null;
+      return decodeURIComponent((new RegExp('[?|&]' + name + '=([^&;]+?)(&|#|;|$)').exec(queryString)||["",""])[1].replace(/\+/g, '%20'))||null;
     };
 
     // Constructor
     var Aladin = function(aladinDiv, requestedOptions) {
         // check that aladinDiv exists, stop immediately otherwise
-        if ($(aladinDiv).length==0) {
+        if ($(aladinDiv).length===0) {
             console.log('Could not find div ' + aladinDiv + '. Aborting creation of Aladin Lite instance');
             return;
         }
@@ -85,13 +76,13 @@ const Aladin = (function() {
 
 	    // 'fov' option was previsouly called 'zoom'
 	    if ('zoom' in requestedOptions) {
-	        var fovValue = requestedOptions.zoom;
+	        const fovValue = requestedOptions.zoom;
 	        delete requestedOptions.zoom;
 	        requestedOptions.fov = fovValue;
 	    }
 	    // merge with default options
-	    var options = {};
-	    for (var key in Aladin.DEFAULT_OPTIONS) {
+	    const options = {};
+	    for (let key in Aladin.DEFAULT_OPTIONS) {
 	        if (requestedOptions[key] !== undefined) {
 	            options[key] = requestedOptions[key];
 	        }
@@ -99,7 +90,7 @@ const Aladin = (function() {
 	            options[key] = Aladin.DEFAULT_OPTIONS[key];
 	        }
 	    }
-	    for (var key in requestedOptions) {
+	    for (let key in requestedOptions) {
 	        if (Aladin.DEFAULT_OPTIONS[key]===undefined) {
 	            options[key] = requestedOptions[key];
 	        }
@@ -937,13 +928,13 @@ const Aladin = (function() {
 
     // @oldAPI
     Aladin.prototype.createSource = function(ra, dec, data) {
-        return new cds.Source(ra, dec, data);
+        return new Source(ra, dec, data);
     };
     // @oldAPI
     Aladin.prototype.createMarker = function(ra, dec, options, data) {
         options = options || {};
         options['marker'] = true;
-        return new cds.Source(ra, dec, data, options);
+        return new Source(ra, dec, data, options);
     };
 
     Aladin.prototype.createOverlay = function(options) {
@@ -1502,7 +1493,7 @@ Aladin.prototype.displayFITS = function(url, options, successCallback, errorCall
     $.ajax({
         url: 'https://alasky.unistra.fr/cgi/fits2HiPS',
         data: data,
-        method: 'GET',
+        method: 'POST',
         dataType: 'json',
         success: function(response) {
             if (response.status!='success') {

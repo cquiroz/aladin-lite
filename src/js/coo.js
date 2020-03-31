@@ -34,9 +34,9 @@ Coo.prototype = {
 	computeLonLat: function() {
 		var r2 = this.x*this.x+this.y*this.y;
 		this.lon = 0.0;
-		if (r2 == 0.0) {
+		if (r2 === 0.0) {
 			// In case of poles
-			if (this.z == 0.0) {
+			if (this.z === 0.0) {
 				this.lon = 0.0/0.0;
 				this.lat = 0.0/0.0;
 			} else {
@@ -71,8 +71,8 @@ Coo.prototype = {
    **/
     distance: function(pos) {
       // Take care of NaN:
-    	if ((pos.x==0)&&(pos.y==0)&&(pos.z==0)) return(0./0.);
-    	if ((this.x==0)&&(this.y==0)&&(this.z==0)) return(0./0.);
+    	if ((pos.x===0)&&(pos.y===0)&&(pos.z===0)) return(0./0.);
+    	if ((this.x===0)&&(this.y===0)&&(this.z===0)) return(0./0.);
       return (2. * AstroMath.asind(0.5 * Math.sqrt(this.dist2(pos))));
     },
 
@@ -131,7 +131,7 @@ Coo.prototype = {
      * @return  True if the two coordinates are equal
      */
     equals: function(coo) {
-		return this.x == coo.x && this.y == coo.y && this.z == coo.z;
+		return this.x === coo.x && this.y === coo.y && this.z === coo.z;
     },
 
 	/**
@@ -157,8 +157,8 @@ Coo.prototype = {
 		return true;
 	},
 
-	parseLon: function(str) {
-		var str = str.trim();
+	parseLon: function(string) {
+		let str = string.trim();
         str = str.replace(/:/g, ' ');
 
 		if (str.indexOf(' ') < 0) {
@@ -179,7 +179,7 @@ Coo.prototype = {
 				switch (i) {
 					case 0: pr = dec < 0 ? 1 : 2; break;
 					case 1: pr = dec < 0 ? 3 : 4; break;
-					case 2: pr = dec < 0 ? 5 : 4+tok.length-dec;
+					case 2: pr = dec < 0 ? 5 : 4+tok.length-dec; break;
 					default: break;
 				}
 				i++;
@@ -189,8 +189,8 @@ Coo.prototype = {
 		}
 	},
 
-	parseLat: function(str) {
-		var str = str.trim();
+	parseLat: function(string) {
+		let str = string.trim();
         str = str.replace(/:/g, ' ');
 
 		var sign;

@@ -19,7 +19,7 @@
 
 const CooConversion = (function() {
 
-    var CooConversion = {};
+    const CooConversion = {};
 
     CooConversion.GALACTIC_TO_J2000 = [
        -0.0548755604024359,  0.4941094279435681, -0.8676661489811610,
@@ -37,23 +37,23 @@ const CooConversion = (function() {
     CooConversion.Transform = function( radec, matrix ) {// returns a radec array of two elements
         radec[0] = radec[0]*Math.PI/180;
         radec[1] = radec[1]*Math.PI/180;
-      var r0 = new Array (
+      const r0 = [
        Math.cos(radec[0]) * Math.cos(radec[1]),
        Math.sin(radec[0]) * Math.cos(radec[1]),
-       Math.sin(radec[1]) );
+       Math.sin(radec[1]) ];
 
-     var s0 = new Array (
+     const s0 = [
        r0[0]*matrix[0] + r0[1]*matrix[1] + r0[2]*matrix[2],
        r0[0]*matrix[3] + r0[1]*matrix[4] + r0[2]*matrix[5],
-       r0[0]*matrix[6] + r0[1]*matrix[7] + r0[2]*matrix[8] );
+       r0[0]*matrix[6] + r0[1]*matrix[7] + r0[2]*matrix[8] ];
 
       var r = Math.sqrt ( s0[0]*s0[0] + s0[1]*s0[1] + s0[2]*s0[2] );
 
-      var result = new Array ( 0.0, 0.0 );
+      const result = [ 0.0, 0.0 ];
       result[1] = Math.asin ( s0[2]/r ); // New dec in range -90.0 -- +90.0
       // or use sin^2 + cos^2 = 1.0
-      var cosaa = ( (s0[0]/r) / Math.cos(result[1] ) );
-      var sinaa = ( (s0[1]/r) / Math.cos(result[1] ) );
+      const cosaa = ( (s0[0]/r) / Math.cos(result[1] ) );
+      const sinaa = ( (s0[1]/r) / Math.cos(result[1] ) );
       result[0] = Math.atan2 (sinaa,cosaa);
       if ( result[0] < 0.0 ) result[0] = result[0] + 2*Math.PI;
 

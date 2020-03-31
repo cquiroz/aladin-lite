@@ -30,9 +30,10 @@
 import Utils from './Utils';
 import CooFrameEnum from './CooFrameEnum';
 import Color from './Color';
+import Source from './Source';
+import Catalog from './Catalog';
 import Coo from './coo';
 import $ from 'jquery';
-import cds from './cds';
 
 // TODO: index sources according to their HEALPix ipix
 // TODO : merge parsing with class Catalog
@@ -202,7 +203,7 @@ const ProgressiveCat = (function() {
                 ra = coo.lon;
                 dec = coo.lat;
             }
-            newSource = new cds.Source(ra, dec, mesures);
+            newSource = new Source(ra, dec, mesures);
             sources.push(newSource);
             newSource.setCatalog(instance);
         }
@@ -366,13 +367,13 @@ const ProgressiveCat = (function() {
                 return;
             }
             for (var k=0, len = sources.length; k<len; k++) {
-                cds.Catalog.drawSource(this, sources[k], ctx, projection, frame, width, height, largestDim, zoomFactor);
+                Catalog.drawSource(this, sources[k], ctx, projection, frame, width, height, largestDim, zoomFactor);
             }
             for (var k=0, len = sources.length; k<len; k++) {
                 if (! sources[k].isSelected) {
                     continue;
                 }
-                cds.Catalog.drawSourceSelection(this, sources[k], ctx);
+                Catalog.drawSourceSelection(this, sources[k], ctx);
             }
         },
 

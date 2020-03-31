@@ -35,9 +35,9 @@ import Utils from './Utils';
 import AladinUtils from './AladinUtils';
 import CooConversion from './CooConversion';
 import CooFrameEnum from './CooFrameEnum';
+import Source from './Source';
 import Coo from './coo';
-var cds = require("./cds");
-var A = cds.A;
+import * as A from './A';
 
 // TODO : harmoniser parsing avec classe ProgressiveCat
 const Catalog = (function() {
@@ -346,7 +346,7 @@ const Catalog = (function() {
                    ra = coo.lon;
                    dec = coo.lat;
                }
-               sources.push(new cds.Source(ra, dec, mesures));
+               sources.push(new Source(ra, dec, mesures));
                if (maxNbSources && sources.length==maxNbSources) {
                    return false; // break the .each loop
                }

@@ -58,7 +58,7 @@ const Tile = (function() {
 	    // naturalHeight. These give the true size of the image. If it failed
 	    // to load, either of these should be zero.
 
-	    if (typeof img.naturalWidth != "undefined" && img.naturalWidth == 0) {
+	    if (typeof img.naturalWidth != "undefined" && img.naturalWidth === 0) {
 	        return false;
 	    }
 

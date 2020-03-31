@@ -1,5 +1,4 @@
 import Constants from './Constants';
-import Utils from './Utils';
 import SpatialVector from './SpatialVector';
 
 class LongRangeSetBuilder {
@@ -509,7 +508,7 @@ export default class HealpixIndex {
             };
         }
         let d, f, y, v;
-        const pixset = new LongRangeSetBuilder;
+        const pixset = new LongRangeSetBuilder();
 
         const rsmall = inclusive ? (radius + (Constants.PI / this.nl4)) : radius;
         const [theta,phi]= HealpixIndex.vec2Ang(spatialVector);

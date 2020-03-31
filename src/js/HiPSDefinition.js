@@ -33,7 +33,7 @@ import $ from 'jquery';
 const HiPSDefinition = (function() {
 
     // constructor
-    var HiPSDefinition = function(properties) {
+    const HiPSDefinition = function(properties) {
         this.properties = properties; // key-value object corresponding to the properties file
 
         this.id = this.getID();
@@ -96,7 +96,7 @@ const HiPSDefinition = (function() {
 
     // cache (at the source code level) of the list of HiPS
     // this is the result to a query to http://alasky.u-strasbg.fr/MocServer/query?dataproduct_type=image&client_application=AladinLite&fmt=json&fields=ID,obs_title,client_sort_key,client_application,hips_service_url*,hips_order,hips_tile_format,hips_frame
-    var AL_CACHE_CLASS_LEVEL = [{
+    const AL_CACHE_CLASS_LEVEL = [{
     "ID": "CDS/P/2MASS/color",
     "obs_title": "2MASS color J (1.23 microns), H (1.66 microns), K (2.16 microns)",
     "client_sort_key": "04-001-00",
@@ -363,8 +363,8 @@ const HiPSDefinition = (function() {
 
     // get HiPS definitions, by querying the MocServer
     // return data as dict-like objects
-    HiPSDefinition.getRemoteDefinitions = function(params, successCallbackFn, failureCallbackFn) {
-        var params = params || {client_application: 'AladinLite'}; // by default, retrieve only HiPS tagged "Aladin Lite"
+    HiPSDefinition.getRemoteDefinitions = function(param, successCallbackFn, failureCallbackFn) {
+        let params = param || {client_application: 'AladinLite'}; // by default, retrieve only HiPS tagged "Aladin Lite"
 
         params['fmt'] = 'json';
         params['fields'] = 'ID,obs_title,client_sort_key,client_application,hips_service_url*,hips_order,hips_tile_format,hips_frame';
@@ -386,16 +386,16 @@ const HiPSDefinition = (function() {
     var merge = function(baseList, newList) {
         var updatedList = [];
         var newListById = {};
-        for (var k=0; k<newList.length; k++) {
+        for (let k=0; k<newList.length; k++) {
             var item = newList[k];
             newListById[item.ID] = item;
         }
 
-        for (var k=0; k<baseList.length; k++) {
-            var item = baseList[k];
-            var id = item.ID;
+        for (let k=0; k<baseList.length; k++) {
+            let item = baseList[k];
+            const id = item.ID;
             if (newListById.hasOwnProperty(id)) {
-                var itemToAdd = newListById[id];
+                const itemToAdd = newListById[id];
                 // we keep the last used URL property
                 if (item.hasOwnProperty(LAST_URL_KEY) && ! itemToAdd.hasOwnProperty(LAST_URL_KEY)) {
                     itemToAdd[LAST_URL_KEY] = item[LAST_URL_KEY];
@@ -420,14 +420,14 @@ const HiPSDefinition = (function() {
         // 2.1 remove old defs
         var now = new Date().getTime();
         var indicesToRemove = [];
-        for (var k=0; k<localDefs.length; k++) {
+        for (let k=0; k<localDefs.length; k++) {
             var def = localDefs[k];
             if (def.hasOwnProperty(RETRIEVAL_TIMESTAMP_KEY) && (now - def[RETRIEVAL_TIMESTAMP_KEY]) > 1000 * HiPSDefinition.CACHE_RETENTION_TIME_SECONDS) {
                 indicesToRemove.push(k);
             }
         }
         // we have to browse the array in reverse order in order not to mess up indices
-        for (var k = indicesToRemove.length - 1; k >= 0; k--) {
+        for (let k = indicesToRemove.length - 1; k >= 0; k--) {
             localDefs.splice(indicesToRemove[k],1);
         }
         // 2.2 merge

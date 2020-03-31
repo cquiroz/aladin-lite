@@ -59,7 +59,6 @@ function relMouseCoords(event) {
             }
         }
         var e = event;
-        var canvas = e.target;
         // http://www.jacklmoore.com/notes/mouse-position/
         var target = e.target || e.srcElement;
         var style = target.currentStyle || window.getComputedStyle(target, null);
@@ -86,39 +85,13 @@ function relMouseCoords(event) {
 }
 HTMLCanvasElement.prototype.relMouseCoords = relMouseCoords;
 
-
-
-//Function.prototype.bind polyfill from
-//https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
-if (!Function.prototype.bind) {
-    Function.prototype.bind = function (obj) {
-        // closest thing possible to the ECMAScript 5 internal IsCallable function
-        if (typeof this !== 'function') {
-            throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
-        }
-
-        var slice = [].slice,
-        args = slice.call(arguments, 1),
-        self = this,
-        nop = function () { },
-        bound = function () {
-            return self.apply(this instanceof nop ? this : (obj || {}),
-                    args.concat(slice.call(arguments)));
-        };
-
-        bound.prototype = this.prototype;
-
-        return bound;
-    };
-}
-
 /* source: http://stackoverflow.com/a/1830844 */
 Utils.isNumber = function(n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
 };
 
 Utils.isInt = function(n) {
-    return Utils.isNumber(n) && Math.floor(n)==n;
+    return Utils.isNumber(n) && Math.floor(n)===n;
 };
 
 /* a debounce function, used to prevent multiple calls to the same function if less than delay milliseconds have passed */
@@ -141,7 +114,7 @@ Utils.throttle = function(fn, threshhold, scope) {
   return function () {
     var context = scope || this;
 
-    var now = +new Date,
+    var now = +new Date(),
         args = arguments;
     if (last && now < last + threshhold) {
       // hold on to it
@@ -220,11 +193,11 @@ Utils.LRUCache.prototype = {
   This method assumes the URL are CORS-compatible, no proxy will be used
  */
 Utils.loadFromMirrors = function(urls, options) {
-    var data    = options && options.data || null;
-    var dataType = options && options.dataType || null;
+    var data    = (options && options.data) || null;
+    var dataType = (options && options.dataType) || null;
 
-    var onSuccess = options && options.onSuccess || null;
-    var onFailure = options && options.onFailure || null;
+    var onSuccess = (options && options.onSuccess) || null;
+    var onFailure = (options && options.onFailure) || null;
 
     if (urls.length === 0) {
         (typeof onFailure === 'function') && onFailure();
@@ -291,7 +264,7 @@ Utils.getAbsoluteURL = function(url) {
 // generate a valid v4 UUID
 Utils.uuidv4 = function() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        var r = Math.random() * 16 | 0, v = c === 'x' ? r : ((r & 0x3) | 0x8);
         return v.toString(16);
     });
 }
