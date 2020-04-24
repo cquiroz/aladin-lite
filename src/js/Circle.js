@@ -103,7 +103,6 @@ const Circle = (function() {
                 }
             }));
 */
-
             this.overlay.reportChange();
         }
     };
@@ -139,7 +138,6 @@ const Circle = (function() {
         if (! this.isShowing) {
             return;
         }
-
 
         noStroke = noStroke===true || false;
 

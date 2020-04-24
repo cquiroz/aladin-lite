@@ -1,9 +1,10 @@
 {
   "name": "@cquiroz/aladin-lite",
-  "version": "0.0.6",
+  "version": "0.0.19",
   "description": "AladinLite module",
-  "main": "index.js",
+  "main": "lib/js/index.js",
   "scripts": {
+    "prepublish": "babel src --out-dir lib",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -22,10 +23,21 @@
   },
   "homepage": "https://github.com/cquiroz/aladin-lite#readme",
   "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.0",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/preset-env": "^7.9.5",
     "eslint": "^6.8.0"
   },
   "dependencies": {
+    "jquery": "^1.12.4",
     "raf": "^3.4.1",
     "stats.js": "^0.17.0"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ],
+    "plugins": ["@babel/plugin-proposal-class-properties"]
   }
 }

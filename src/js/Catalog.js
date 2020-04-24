@@ -287,8 +287,6 @@ const Catalog = (function() {
                 var idx = prefix.indexOf(':');
 
                 prefix = prefix.substring(0, idx) + "\\:";
-
-
             }
 
             return prefix;

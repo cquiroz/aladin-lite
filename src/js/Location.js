@@ -17,8 +17,6 @@
 //    along with Aladin Lite.
 //
 
-
-
 /******************************************************************************
  * Aladin Lite project
  *
@@ -27,33 +25,32 @@
  * Author: Thomas Boch[CDS]
  *
  *****************************************************************************/
-import $ from 'jquery';
-import CooFrameEnum from './CooFrameEnum';
-import Coo from './coo';
+import CooFrameEnum from "./CooFrameEnum";
+import Coo from "./coo";
 
-const Location = (function() {
-    // constructor
-  const Location = function(locationDiv) {
-    		this.$div = $(locationDiv);
-    	};
+/** Prints out the coordinates on the screen */
+export default class Location {
+  // constructor
+  constructor(locationDiv) {
+    this.$div = locationDiv;
+  }
 
-	Location.prototype.update = function(lon, lat, cooFrame, isViewCenterPosition) {
-        isViewCenterPosition = (isViewCenterPosition && isViewCenterPosition===true) || false;
-		var coo = new Coo(lon, lat, 7);
-		if (cooFrame===CooFrameEnum.J2000) {
-            this.$div.html(coo.format('s/'));
-        }
-		else if (cooFrame===CooFrameEnum.J2000d) {
-            this.$div.html(coo.format('d/'));
-        }
-        else {
-            this.$div.html(coo.format('d/'));
-        }
+  update(lon, lat, cooFrame, isViewCenterPosition) {
+    isViewCenterPosition =
+      (isViewCenterPosition && isViewCenterPosition === true) || false;
+    var coo = new Coo(lon, lat, 7);
+    if (cooFrame === CooFrameEnum.J2000) {
+      this.$div.innerHTML = coo.format("s/");
+    } else if (cooFrame === CooFrameEnum.J2000d) {
+      this.$div.innerHTML = coo.format("d/");
+    } else {
+      this.$div.innerHTML = coo.format("d/");
+    }
 
-        this.$div.toggleClass('aladin-reticleColor', isViewCenterPosition);
-	};
-
-	return Location;
-})();
-
-export default Location;
+    if (isViewCenterPosition) {
+      this.$div.classList.add("aladin-reticleColor");
+    } else {
+      this.$div.classList.remove("aladin-reticleColor");
+    }
+  }
+}

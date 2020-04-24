@@ -28,20 +28,16 @@
  *
  *****************************************************************************/
 
-const Color = (function() {
+export default class Color {
 
+    static curIdx = 0;
+    static colors = ['#ff0000', '#0000ff', '#99cc00', '#ffff00','#000066', '#00ffff', '#9900cc', '#0099cc', '#cc9900', '#cc0099', '#00cc99', '#663333', '#ffcc9a', '#ff9acc', '#ccff33', '#660000', '#ffcc33', '#ff00ff', '#00ff00', '#ffffff'];
 
-    const Color = {};
-
-    Color.curIdx = 0;
-    Color.colors = ['#ff0000', '#0000ff', '#99cc00', '#ffff00','#000066', '#00ffff', '#9900cc', '#0099cc', '#cc9900', '#cc0099', '#00cc99', '#663333', '#ffcc9a', '#ff9acc', '#ccff33', '#660000', '#ffcc33', '#ff00ff', '#00ff00', '#ffffff'];
-
-
-    Color.getNextColor = function() {
+    static getNextColor() {
         const c = Color.colors[Color.curIdx % (Color.colors.length)];
         Color.curIdx++;
         return c;
-    };
+    }
 
     /** return most suited (ie readable) color for a label, given a background color
      * bkgdColor: color, given as a 'rgb(<r value>, <g value>, <v value>)' . This is returned by $(<element>).css('background-color')
@@ -49,7 +45,7 @@ const Color = (function() {
      * example call: Color.getLabelColorForBackground('rgb(3, 123, 42)')
      * adapted from http://stackoverflow.com/questions/1855884/determine-font-color-based-on-background-color
      */
-    Color.getLabelColorForBackground = function(rgbBkgdColor) {
+    static getLabelColorForBackground(rgbBkgdColor) {
         const lightLabel = '#eee'
         const darkLabel = '#111'
         const rgb = rgbBkgdColor.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
@@ -70,9 +66,5 @@ const Color = (function() {
         else {
             return lightLabel; // dark color --> light font
         }
-    };
-
-    return Color;
-})();
-
-export default Color;
+    }
+}

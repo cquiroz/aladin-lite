@@ -30,9 +30,9 @@
  *****************************************************************************/
 
 import $ from 'jquery';
-// import Alading from './Aladin';
 
 const Utils = {};
+const JSONP_PROXY = "https://alasky.unistra.fr/cgi/JSONProxy";
 
 Utils.cssScale = undefined;
 // adding relMouseCoords to HTMLCanvasElement prototype (see http://stackoverflow.com/questions/55677/how-do-i-get-the-coordinates-of-a-mouse-click-on-a-canvas-element )
@@ -227,8 +227,7 @@ Utils.getAjaxObject = function(url, method, dataType, useProxy) {
         if (useProxy!==false) {
             useProxy = true;
         }
-        const JsonProxy =
-          "" //Aladin.JSONP_PROXY
+        const JsonProxy = JSONP_PROXY;
 
         if (useProxy===true) {
             var urlToRequest = JsonProxy + '?url=' + encodeURIComponent(url);

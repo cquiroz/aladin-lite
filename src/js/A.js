@@ -10,7 +10,6 @@ import ProgressiveCat from "./ProgressiveCat";
 import Catalog from "./Catalog";
 import Aladin from "./Aladin";
 import Source from "./Source";
-import $ from "jquery";
 
 // API
 let footprintsFromSTCS = function (stcs) {
@@ -42,7 +41,7 @@ let MOCFromJSON = function (jsonMOC, options) {
 // TODO: try first without proxy, and then with, if param useProxy not set
 // API
 let catalogFromURL = function (url, options, successCallback, useProxy) {
-  var cat= catalog(options);
+  var cat = catalog(options);
   // TODO: should be self-contained in Catalog class
   Catalog.parseVOTable(
     url,
@@ -58,7 +57,7 @@ let catalogFromURL = function (url, options, successCallback, useProxy) {
     cat.decField
   );
 
-  return catalog;
+  return cat;
 };
 
 // API
@@ -133,8 +132,20 @@ let catalogFromSkyBot = function (
   return catalogFromURL(url, options, successCallback, false);
 };
 //@API
-let aladin = function (divSelector, options) {
-  return new Aladin($(divSelector)[0], options);
+const aladin = (divSelector, options) => {
+  const divs = document.querySelectorAll(divSelector);
+  if (divs.length > 0) {
+    return new Aladin(document.querySelectorAll(divSelector)[0], options);
+  } else {
+    const newDiv = document.createElement("div");
+    // and give it some content
+    const newContent = document.createTextNode(
+      `Not found items with selector ${divSelector}`
+    );
+    // add the text node to the newly created div
+    newDiv.appendChild(newContent);
+    return newDiv;
+  }
 };
 
 //@API
@@ -149,7 +160,7 @@ let source = function (ra, dec, data, options) {
 };
 
 // @API
-let marker = function (ra, dec, options, data) {
+let marker = function (ra, dec,  data, options) {
   options = options || {};
   options["marker"] = true;
   return source(ra, dec, data, options);
@@ -171,7 +182,7 @@ let polygon = function (raDecArray) {
 };
 
 //@API
-let polyline = function (raDecArray, options) {
+const polyline = function (raDecArray, options) {
   return new Polyline(raDecArray, options);
 };
 
@@ -184,7 +195,6 @@ let circle = function (ra, dec, radiusDeg, options) {
 let graphicOverlay = function (options) {
   return new Overlay(options);
 };
-
 
 // @API
 let catalogHiPS = function (rootURL, options) {

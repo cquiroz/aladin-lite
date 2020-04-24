@@ -183,7 +183,6 @@ const HpxImageSurvey = (function() {
     };
 
     HpxImageSurvey.DEFAULT_SURVEY_ID = "P/DSS2/color";
-
     HpxImageSurvey.SURVEYS_OBJECTS = {};
     HpxImageSurvey.SURVEYS = [
      {
@@ -332,8 +331,6 @@ const HpxImageSurvey = (function() {
      }
   ];
 
-
-
     HpxImageSurvey.getAvailableSurveys = function() {
     	return HpxImageSurvey.SURVEYS;
     };
@@ -415,9 +412,6 @@ const HpxImageSurvey = (function() {
 
         var cornersXYViewMapAllsky = view.getVisibleCells(3, this.cooFrame);
         var cornersXYViewMapHighres = null;
-
-
-
         var norder4Display = Math.min(curOverlayNorder, this.maxOrder);
         if (curOverlayNorder>=3) {
             if (curOverlayNorder===3) {
@@ -443,7 +437,6 @@ const HpxImageSurvey = (function() {
                 this.drawAllsky(ctx, cornersXYViewMapAllsky, norder4Display, view);
             }
 */
-
             return;
         }
 

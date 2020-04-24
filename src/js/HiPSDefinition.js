@@ -334,25 +334,31 @@ const HiPSDefinition = (function() {
     // retrieve definitions previousy stored in local storage
     // @return an array with the HiPS definitions, empty array if nothing found or if an error occured
     HiPSDefinition.getLocalStorageDefinitions = function() {
-        try {
-            var defs = window.localStorage.getItem(HiPSDefinition.LOCAL_STORAGE_KEY);
-            return defs === null ? [] : window.JSON.parse(defs);
-        }
-        catch(e) {
-            console.error(e);
-            return [];
+        if (window.localStorage) {
+          try {
+              var defs = window.localStorage.getItem(HiPSDefinition.LOCAL_STORAGE_KEY);
+              return defs === null ? [] : window.JSON.parse(defs);
+          }
+          catch(e) {
+              console.error(e);
+              return [];
+          }
+        } else {
+          return [];
         }
     };
 
     // store in local storage a list of HiPSDefinition objects
     // @return true if storage was successful
     HiPSDefinition.storeInLocalStorage = function(properties) {
+        if (window.localStorage) {
         try {
             window.localStorage.setItem(HiPSDefinition.LOCAL_STORAGE_KEY, window.JSON.stringify(properties));
         }
         catch(e) {
             console.error(e);
             return false;
+        }
         }
 
         return true;

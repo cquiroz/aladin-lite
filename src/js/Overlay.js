@@ -56,7 +56,6 @@ const Overlay = (function() {
     	this.isShowing = true;
     };
 
-
     // TODO : show/hide methods should be integrated in a parent class
     Overlay.prototype.show = function() {
         if (this.isShowing) {

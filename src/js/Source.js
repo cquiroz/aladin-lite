@@ -28,9 +28,9 @@
  *
  *****************************************************************************/
 
-const Source = (function() {
+export default class Source{
     // constructor
-    const Source = function(ra, dec, data, options) {
+    constructor(ra, dec, data, options) {
     	this.ra = ra;
     	this.dec = dec;
     	this.data = data;
@@ -45,13 +45,13 @@ const Source = (function() {
 
     	this.isShowing = true;
     	this.isSelected = false;
-    };
+    }
 
-    Source.prototype.setCatalog = function(catalog) {
+    setCatalog(catalog) {
         this.catalog = catalog;
-    };
+    }
 
-    Source.prototype.show = function() {
+    show() {
         if (this.isShowing) {
             return;
         }
@@ -59,9 +59,9 @@ const Source = (function() {
         if (this.catalog) {
             this.catalog.reportChange();
         }
-    };
+    }
 
-    Source.prototype.hide = function() {
+    hide() {
         if (! this.isShowing) {
             return;
         }
@@ -69,9 +69,9 @@ const Source = (function() {
         if (this.catalog) {
             this.catalog.reportChange();
         }
-    };
+    }
 
-    Source.prototype.select = function() {
+    select() {
         if (this.isSelected) {
             return;
         }
@@ -79,9 +79,9 @@ const Source = (function() {
         if (this.catalog) {
             this.catalog.reportChange();
         }
-    };
+    }
 
-    Source.prototype.deselect = function() {
+    deselect() {
         if (! this.isSelected) {
             return;
         }
@@ -89,10 +89,10 @@ const Source = (function() {
         if (this.catalog) {
             this.catalog.reportChange();
         }
-    };
+    }
 
     // function called when a source is clicked. Called by the View object
-    Source.prototype.actionClicked = function() {
+    actionClicked() {
         if (this.catalog && this.catalog.onClick) {
             var view = this.catalog.view;
             if (this.catalog.onClick==='showTable') {
@@ -118,16 +118,13 @@ const Source = (function() {
             }
 
         }
-    };
+    }
 
-
-    Source.prototype.actionOtherObjectClicked = function() {
+    actionOtherObjectClicked () {
         if (this.catalog && this.catalog.onClick) {
             this.deselect();
         }
-    };
+    }
 
-    return Source;
-})();
+}
 
-export default Source;

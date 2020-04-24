@@ -17,8 +17,6 @@
 //    along with Aladin Lite.
 //
 
-
-
 /******************************************************************************
  * Aladin Lite project
  *
@@ -32,97 +30,110 @@
  * Author: Thomas Boch[CDS]
  *
  *****************************************************************************/
-import AladinUtils from './AladinUtils';
+import AladinUtils from "./AladinUtils";
 
-const Polyline= (function() {
-    // constructor
-    const Polyline = function(radecArray, options) {
-        options = options || {};
-        this.color = options['color'] || undefined;
+export default class Polyline {
+  // constructor
+  construtor(radecArray, options) {
+    options = options || {};
+    this.color = options["color"] || undefined;
 
-        this.radecArray = radecArray;
-        this.overlay = null;
+    this.radecArray = radecArray;
+    this.overlay = null;
 
-    	this.isShowing = true;
-    	this.isSelected = false;
-    };
+    this.isShowing = true;
+    this.isSelected = false;
+  }
 
-    Polyline.prototype.setOverlay = function(overlay) {
-        this.overlay = overlay;
-    };
+  setOverlay(overlay) {
+    this.overlay = overlay;
+  }
 
-    Polyline.prototype.show = function() {
-        if (this.isShowing) {
-            return;
-        }
-        this.isShowing = true;
-        if (this.overlay) {
-            this.overlay.reportChange();
-        }
-    };
+  show() {
+    if (this.isShowing) {
+      return;
+    }
+    this.isShowing = true;
+    if (this.overlay) {
+      this.overlay.reportChange();
+    }
+  }
 
-    Polyline.prototype.hide = function() {
-        if (! this.isShowing) {
-            return;
-        }
-        this.isShowing = false;
-        if (this.overlay) {
-            this.overlay.reportChange();
-        }
-    };
+  hide() {
+    if (!this.isShowing) {
+      return;
+    }
+    this.isShowing = false;
+    if (this.overlay) {
+      this.overlay.reportChange();
+    }
+  }
 
-    Polyline.prototype.select = function() {
-        if (this.isSelected) {
-            return;
-        }
-        this.isSelected = true;
-        if (this.overlay) {
-            this.overlay.reportChange();
-        }
-    };
+  select() {
+    if (this.isSelected) {
+      return;
+    }
+    this.isSelected = true;
+    if (this.overlay) {
+      this.overlay.reportChange();
+    }
+  }
 
-    Polyline.prototype.deselect = function() {
-        if (! this.isSelected) {
-            return;
-        }
-        this.isSelected = false;
-        if (this.overlay) {
-            this.overlay.reportChange();
-        }
-    };
+  deselect() {
+    if (!this.isSelected) {
+      return;
+    }
+    this.isSelected = false;
+    if (this.overlay) {
+      this.overlay.reportChange();
+    }
+  }
 
-    Polyline.prototype.draw = function(ctx, projection, frame, width, height, largestDim, zoomFactor) {
-        if (! this.isShowing) {
-            return;
-        }
+  draw(ctx, projection, frame, width, height, largestDim, zoomFactor) {
+    if (!this.isShowing) {
+      return;
+    }
 
-        if (! this.radecArray || this.radecArray.length<2) {
-            return;
-        }
+    if (!this.radecArray || this.radecArray.length < 2) {
+      return;
+    }
 
-        if (this.color) {
-            ctx.strokeStyle= this.color;
-        }
-        var start = AladinUtils.radecToViewXy(this.radecArray[0][0], this.radecArray[0][1], projection, frame, width, height, largestDim, zoomFactor);
-        if (! start) {
-            return;
-        }
+    if (this.color) {
+      ctx.strokeStyle = this.color;
+    }
+    var start = AladinUtils.radecToViewXy(
+      this.radecArray[0][0],
+      this.radecArray[0][1],
+      projection,
+      frame,
+      width,
+      height,
+      largestDim,
+      zoomFactor
+    );
+    if (!start) {
+      return;
+    }
 
-        ctx.moveTo(start.vx, start.vy);
-        var pt;
-        for (var k=1; k<this.radecArray.length; k++) {
-            pt = AladinUtils.radecToViewXy(this.radecArray[k][0], this.radecArray[k][1], projection, frame, width, height, largestDim, zoomFactor);
-            if (!pt) {
-                break;
-            }
-            ctx.lineTo(pt.vx, pt.vy);
-        }
+    ctx.moveTo(start.vx, start.vy);
+    var pt;
+    for (var k = 1; k < this.radecArray.length; k++) {
+      pt = AladinUtils.radecToViewXy(
+        this.radecArray[k][0],
+        this.radecArray[k][1],
+        projection,
+        frame,
+        width,
+        height,
+        largestDim,
+        zoomFactor
+      );
+      if (!pt) {
+        break;
+      }
+      ctx.lineTo(pt.vx, pt.vy);
+    }
 
-
-        ctx.stroke();
-    };
-
-    return Polyline;
-})();
-
-export default Polyline;
+    ctx.stroke();
+  }
+}

@@ -163,8 +163,6 @@ ColorMap.MAPS = {};
                 242,242,243,244,245,246,247,248,249,250,252,253,255]
     };
 
-
-
     ColorMap.MAPS_CUSTOM = ['cubehelix', 'eosb', 'rainbow'];
     ColorMap.MAPS_NAMES = ['native', 'grayscale'].concat(ColorMap.MAPS_CUSTOM);
 
@@ -256,7 +254,7 @@ ColorMap.MAPS = {};
             pixelData[i + 2] = c;
 
         }
-        imageData.data = pixelData;
+        // imageData.data = pixelData;
         ctx.putImageData(imageData, 0, 0);
 
         // cache image with color map applied

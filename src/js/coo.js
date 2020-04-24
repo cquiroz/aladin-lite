@@ -246,8 +246,8 @@ Coo.prototype = {
 		} else {
 			// sexagesimal display
 			var hlon = this.lon/15.0;
-			Numbers.toSexagesimal(hlon, this.prec+1, false);
-			Numbers.toSexagesimal(this.lat, this.prec, false);
+			strlon = Numbers.toSexagesimal(hlon, this.prec+1, false);
+			strlat = Numbers.toSexagesimal(this.lat, this.prec, false);
 		}
 		if (this.lat > 0) strlat = '+'+strlat;
 

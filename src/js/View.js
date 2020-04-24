@@ -230,7 +230,6 @@ const View = (function() {
         this.smallestDim = Math.min(this.width, this.height);
         this.ratio = this.largestDim/this.smallestDim;
 
-
         this.mouseMoveIncrement = 160/this.largestDim;
 
         // reinitialize 2D context
@@ -736,7 +735,7 @@ const View = (function() {
         // disable text selection on IE
         $(view.aladinDiv).onselectstart = function () { return false; }
 
-        $(view.reticleCanvas).on('mousewheel', function(event) {
+        view.reticleCanvas.onwheel = function(event) {
             event.preventDefault();
             event.stopPropagation();
             var level = view.zoomLevel;
@@ -756,7 +755,7 @@ const View = (function() {
             view.setZoomLevel(level);
 
             return false;
-        });
+        };
 
     };
 
@@ -1313,8 +1312,6 @@ const View = (function() {
                 radius *= 1.1;
             }
 
-
-
             pixList = hpxIdx.queryDisc(spatialVector, radius*Math.PI/180.0, true, true);
             // add central pixel at index 0
             var polar = Utils.radecToPolar(lonlat[0], lonlat[1]);
@@ -1473,7 +1470,7 @@ const View = (function() {
     };
 
     View.prototype.setZoom = function(fovDegrees) {
-        if (fovDegrees<0 || fovDegrees>180) {
+      if (fovDegrees<0 || (fovDegrees>180 && ! this.aladin.options.allowFullZoomout)) {
             return;
         }
         var zoomLevel = Math.log(180/fovDegrees)/Math.log(1.15);
@@ -1896,6 +1893,7 @@ const View = (function() {
         var overlay;
         var canvas=this.catalogCanvas;
         var ctx = canvas.getContext("2d");
+        ctx.lineWidth = 6;
 
         if (this.overlays) {
             for (var k=0; k<this.overlays.length; k++) {

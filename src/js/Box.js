@@ -34,7 +34,7 @@ import $ from 'jquery';
 const Box = (function() {
 
     // constructor
-    var Box = function(properties) {
+    const Box = function(properties) {
 
         this.$parentDiv = $('<div>');
         this.$parentDiv.addClass('aladin-box');

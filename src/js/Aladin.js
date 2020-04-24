@@ -64,7 +64,6 @@ const Aladin = (function() {
             return;
         }
 
-
 	    var self = this;
 
 	    // if not options was set, try to retrieve them from the query string
@@ -73,13 +72,6 @@ const Aladin = (function() {
 	    }
 	    requestedOptions = requestedOptions || {};
 
-
-	    // 'fov' option was previsouly called 'zoom'
-	    if ('zoom' in requestedOptions) {
-	        const fovValue = requestedOptions.zoom;
-	        delete requestedOptions.zoom;
-	        requestedOptions.fov = fovValue;
-	    }
 	    // merge with default options
 	    const options = {};
 	    for (let key in Aladin.DEFAULT_OPTIONS) {
@@ -166,7 +158,7 @@ const Aladin = (function() {
         // measurement table
         this.measurementTable = new MeasurementTable(aladinDiv);
 
-		const aladinLocation = new Location(locationDiv.find('.aladin-location-text'));
+		const aladinLocation = new Location(locationDiv.find('.aladin-location-text')[0]);
 
 		// set different options
 		this.view = new View(this, aladinLocation, fovDiv, cooFrame, options.fov);
@@ -290,8 +282,8 @@ const Aladin = (function() {
         this.gotoObject(options.target);
 
         if (options.log) {
-            var params = requestedOptions;
-            params['version'] = Aladin.VERSION;
+            var params = Object.assign({}, requestedOptions);
+            params.version = Aladin.VERSION;
             Logger.log("startup", params);
         }
 
@@ -355,8 +347,6 @@ const Aladin = (function() {
 
     Aladin.JSONP_PROXY = "https://alasky.unistra.fr/cgi/JSONProxy";
     //Aladin.JSONP_PROXY = "https://alaskybis.unistra.fr/cgi/JSONProxy";
-
-
 
     Aladin.DEFAULT_OPTIONS = {
         target:                   "0 +0",
