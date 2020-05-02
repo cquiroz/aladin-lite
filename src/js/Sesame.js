@@ -87,7 +87,7 @@ const Sesame = (function() {
             method: 'GET',
             dataType: 'jsonp',
             success: function(data) {
-                if (data.Target && data.Target.Resolver && data.Target.Resolver) {
+                if (data.Target && data.Target.Resolver) {
                     callbackFunctionSuccess(data);
                 }
                 else {
