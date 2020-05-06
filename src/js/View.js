@@ -125,11 +125,8 @@ const View = (function() {
             // reference to all overlay layers (= catalogs + overlays + mocs)
             this.allOverlayLayers = []
 
-
-
             this.tileBuffer = new TileBuffer(); // tile buffer is shared across different image surveys
             this.fixLayoutDimensions();
-
 
             this.curNorder = 1;
             this.realNorder = 1;
@@ -163,7 +160,7 @@ const View = (function() {
             // listen to window resize and reshape canvases
             this.resizeTimer = null;
             var self = this;
-            $(window).resize(function() {
+            $(window, this.aladinDiv).resize(function() {
                 clearTimeout(self.resizeTimer);
                 self.resizeTimer = setTimeout(function() {self.fixLayoutDimensions(self)}, 100);
             });
