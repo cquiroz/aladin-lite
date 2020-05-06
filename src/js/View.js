@@ -165,6 +165,11 @@ const View = (function() {
                 self.resizeTimer = setTimeout(function() {self.fixLayoutDimensions(self)}, 100);
             });
 
+            $(this.aladinDiv).resize(function() {
+                clearTimeout(self.resizeTimer);
+              console.log("Resize")
+                self.resizeTimer = setTimeout(function() {self.fixLayoutDimensions(self)}, 100);
+            });
 
             // in some contexts (Jupyter notebook for instance), the parent div changes little time after Aladin Lite creation
             // this results in canvas dimension to be incorrect.

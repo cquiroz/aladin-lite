@@ -1,6 +1,6 @@
 {
   "name": "@cquiroz/aladin-lite",
-  "version": "0.1.2",
+  "version": "0.1.6",
   "description": "AladinLite module",
   "main": "lib/js/index.js",
   "scripts": {
