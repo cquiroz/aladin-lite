@@ -92,9 +92,7 @@ const Aladin = (function() {
 
         $("<style type='text/css'> .aladin-reticleColor { color: " + this.options.reticleColor + "; font-weight:bold;} </style>").appendTo(aladinDiv);
 
-
-
-		this.aladinDiv = aladinDiv;
+        this.aladinDiv = aladinDiv;
 
         this.reduceDeformations = true;
 
@@ -379,6 +377,7 @@ const Aladin = (function() {
     Aladin.prototype.recalculateView = function() {
       this.view.fixLayoutDimensions();
     }
+
     // realFullscreen: AL div expands not only to the size of its parent, but takes the whole available screen estate
     Aladin.prototype.toggleFullscreen = function(realFullscreen) {
         realFullscreen = Boolean(realFullscreen);
@@ -796,9 +795,6 @@ const Aladin = (function() {
         return [radToDeg(lon), radToDeg(lat)];
     };
 
-
-
-
     /**
      * get current [ra, dec] position of the center of the view
      *
@@ -854,14 +850,10 @@ const Aladin = (function() {
         this.view.addMOC(moc);
     };
 
-
-
     // @oldAPI
     Aladin.prototype.createImageSurvey = function(id, name, rootUrl, cooFrame, maxOrder, options) {
         return new HpxImageSurvey(id, name, rootUrl, cooFrame, maxOrder, options);
     };
-
-
 
     // @api
     Aladin.prototype.getBaseImageLayer = function() {
