@@ -1,3 +1,6 @@
+2020-08
+- polyline improvements (by @imbasimba)
+
 2020-07
 - new method stopAnimation
 
@@ -130,7 +133,7 @@ January 2017:
 - added method to query SkyBot: A.catalogFromSkyBot
 
 October 2016:
-- 
+-
 
 September 2016:
 - support of HiPS catalog (new format)
@@ -168,7 +171,7 @@ Novembre 2014:
 - ajout nouvelles formes pour les sources
 
 23 octobre 2014:
-- bug fix méthode on('objectClicked') était appelée de manière intempestive 
+- bug fix méthode on('objectClicked') était appelée de manière intempestive
 quand la souris quittait le canvas
 
 21 octobre 2014:
