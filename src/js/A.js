@@ -5,7 +5,7 @@ import Coo from "./coo";
 import Circle from "./Circle";
 import Polyline from "./Polyline";
 import Footprint from "./Footprint";
-import HpxImageSurvey from "./HpxImageSurvey";
+import { HpxImageSurvey } from "./HpxImageSurvey";
 import ProgressiveCat from "./ProgressiveCat";
 import Catalog from "./Catalog";
 import Aladin from "./Aladin";

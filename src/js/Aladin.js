@@ -30,7 +30,7 @@ import $ from "jquery";
 import CooFrameEnum from "./CooFrameEnum";
 import Coo from "./coo";
 import AladinUtils from "./AladinUtils";
-import HpxImageSurvey from "./HpxImageSurvey";
+import { HpxImageSurvey } from "./HpxImageSurvey";
 import CooConversion from "./CooConversion";
 import MeasurementTable from "./MeasurementTable";
 import Overlay from "./Overlay";

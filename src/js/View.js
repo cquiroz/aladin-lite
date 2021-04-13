@@ -17,9 +17,6 @@
 //    along with Aladin Lite.
 //
 
-
-
-
 /******************************************************************************
  * Aladin Lite project
  *
@@ -38,7 +35,7 @@ import Utils from './Utils';
 import AladinUtils from './AladinUtils';
 import TileBuffer from './TileBuffer';
 import SpatialVector from './SpatialVector';
-import HpxImageSurvey from './HpxImageSurvey';
+import { HpxImageSurvey } from './HpxImageSurvey';
 import { HealpixIndex, ORDER_MAX }  from './HealpixIndex';
 import HealpixCache from './HealpixCache';
 import HealpixGrid from './HealpixGrid';
