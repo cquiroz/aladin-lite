@@ -130,9 +130,7 @@ const HpxImageSurvey = (function() {
         HpxImageSurvey.SURVEYS_OBJECTS[this.id] = this;
     };
 
-
-
-    HpxImageSurvey.UPDATE_NEEDED_TILES_DELAY = 1000; // in milliseconds
+    HpxImageSurvey.prototype.UPDATE_NEEDED_TILES_DELAY = 1000; // in milliseconds
 
     HpxImageSurvey.prototype.init = function(view, callback) {
       this.view = view;
