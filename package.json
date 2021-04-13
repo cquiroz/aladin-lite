@@ -4,7 +4,7 @@
   "description": "AladinLite module",
   "main": "lib/js/index.js",
   "scripts": {
-    "prepare": "babel src --out-dir lib",
+    "build": "babel src --out-dir lib",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
