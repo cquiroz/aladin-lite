@@ -16,7 +16,7 @@ import CooConversion from './CooConversion';
 import CooFrameEnum from './CooFrameEnum';
 import HealpixCache from './HealpixCache';
 import SpatialVector from './SpatialVector';
-import HealpixIndex from './HealpixIndex';
+import { HealpixIndex } from './HealpixIndex';
 import astro from './fits';
 
 const MOC = (function() {
@@ -151,7 +151,7 @@ const MOC = (function() {
     MOC.prototype.dataFromJSON = function(jsonMOC) {
         var order, ipix;
         for (var orderStr in jsonMOC) {
-            if (jsonMOC.hasOwnProperty(orderStr)) {
+            if (Object.prototype.hasOwnProperty.call(jsonMOC, orderStr)) {
                 order = parseInt(orderStr);
                 if (this.order===undefined || order > this.order) {
                     this.order = order;

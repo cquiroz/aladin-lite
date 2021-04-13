@@ -39,7 +39,7 @@ import AladinUtils from './AladinUtils';
 import TileBuffer from './TileBuffer';
 import SpatialVector from './SpatialVector';
 import HpxImageSurvey from './HpxImageSurvey';
-import HealpixIndex from './HealpixIndex';
+import { HealpixIndex, ORDER_MAX }  from './HealpixIndex';
 import HealpixCache from './HealpixCache';
 import HealpixGrid from './HealpixGrid';
 import ProjectionEnum from './ProjectionEnum';
@@ -51,7 +51,7 @@ import {Projection} from './projection';
 import Downloader from './Downloader';
 import ColorMap from './ColorMap';
 import Footprint from './Footprint';
-import * as A from './A';
+import {catalog} from './A';
 
 const View = (function() {
 
@@ -114,7 +114,7 @@ const View = (function() {
             ctx.strokeStyle = '#c38';
             ctx.arc(12, 12, 8, 0, 2*Math.PI, true);
             ctx.stroke();
-            this.catalogForPopup = A.catalog({shape: c, sourceSize: 24});
+            this.catalogForPopup = catalog({shape: c, sourceSize: 24});
             //this.catalogForPopup = A.catalog({sourceSize: 18, shape: 'circle', color: '#c38'});
             this.catalogForPopup.hide();
             this.catalogForPopup.setView(this);
@@ -176,7 +176,7 @@ const View = (function() {
                     self.setZoomLevel(self.zoomLevel); // needed to force recomputation of displayed FoV
                 }
            }, 1000);
-        };
+        }
 
     // different available modes
     View.PAN = 0;
@@ -301,10 +301,8 @@ const View = (function() {
     View.prototype.getCanvasDataURL = function(imgType, width, height) {
         imgType = imgType || "image/png";
         var c = document.createElement('canvas');
-        width = width || this.width;
-        height = height || this.height;
-        c.width = width;
-        c.height = height;
+        c.width = width || this.width;
+        c.height = height || this.height;
         var ctx = c.getContext('2d');
         ctx.drawImage(this.imageCanvas, 0, 0, c.width, c.height);
         ctx.drawImage(this.catalogCanvas, 0, 0, c.width, c.height);
@@ -735,7 +733,7 @@ const View = (function() {
              var delta = event.deltaY;
             // this seems to happen in context of Jupyter notebook --> we have to invert the direction of scroll
             // hope this won't trigger some side effects ...
-            if (event.hasOwnProperty('originalEvent')) {
+            if (Object.prototype.hasOwnProperty.call(event, 'originalEvent')) {
                 delta = -event.originalEvent.deltaY;
             }
             if (delta>0) {
@@ -817,6 +815,7 @@ const View = (function() {
             lonlat = view.projection.unproject(xy.x, xy.y);
         }
         catch(err) {
+            console.log(err);
         }
         if (lonlat) {
             view.location.update(lonlat.ra, lonlat.dec, view.cooFrame, isViewCenterPosition);
@@ -1557,11 +1556,11 @@ const View = (function() {
             overlayNorder = this.overlayImageSurvey.maxOrder;
         }
         // should never happen, as calculateNSide will return something <=HealpixIndex.ORDER_MAX
-        if (norder>HealpixIndex.ORDER_MAX) {
-            norder = HealpixIndex.ORDER_MAX;
+        if (norder>ORDER_MAX) {
+            norder = ORDER_MAX;
         }
-        if (overlayNorder>HealpixIndex.ORDER_MAX) {
-            overlayNorder = HealpixIndex.ORDER_MAX;
+        if (overlayNorder>ORDER_MAX) {
+            overlayNorder = ORDER_MAX;
         }
 
         this.curNorder = norder;
@@ -1647,7 +1646,7 @@ const View = (function() {
         }
 
         // do not touch the tileBuffer if we load the exact same HiPS (in that case, should we stop here??)
-        if (newImageSurvey && this.imageSurvey && newImageSurvey.hasOwnProperty('id') && this.imageSurvey.hasOwnProperty('id') && newImageSurvey.id===this.imageSurvey.id) {
+        if (newImageSurvey && this.imageSurvey && Object.prototype.hasOwnProperty.call(newImageSurvey, 'id') && Object.prototype.hasOwnProperty.call(imageSurvey, 'id') && newImageSurvey.id===this.imageSurvey.id) {
             // do nothing
         }
         else {

@@ -45,7 +45,7 @@ import ColorMap from "./ColorMap";
 import Box from "./Box";
 import Sesame from "./Sesame";
 import Source from "./Source";
-import * as A from "./A";
+import { catalog, footprintsFromSTCS, catalogFromURL, marker } from "./A";
 
 const Aladin = (function () {
   const urlParam = function (name, queryString) {
@@ -201,12 +201,12 @@ const Aladin = (function () {
       ".aladin-fullscreenControl"
     )[0];
     if (this.fullScreenBtn) {
-      this.fullScreenBtn.addEventListener("click", (_) => {
+      this.fullScreenBtn.addEventListener("click", () => {
         self.toggleFullscreen(self.options.realFullscreen);
       });
     }
     // react to fullscreenchange event to restore initial width/height (if user pressed ESC to go back from full screen)
-    document.addEventListener("fullscreenchange webkitfullscreenchange mozfullscreenchange MSFullscreenChange", _ => {
+    document.addEventListener("fullscreenchange webkitfullscreenchange mozfullscreenchange MSFullscreenChange", () => {
         var fullscreenElt =
           document.fullscreenElement ||
           document.webkitFullscreenElement ||
@@ -539,8 +539,6 @@ const Aladin = (function () {
           document.webkitExitFullscreen();
         } else if (document.mozCancelFullScreen) {
           document.mozCancelFullScreen();
-        } else if (document.webkitExitFullscreen) {
-          document.webkitExitFullscreen();
         }
       }
     }
@@ -710,10 +708,10 @@ const Aladin = (function () {
     var errorCallback = undefined;
     var successCallback = undefined;
     if (typeof callbackOptions === "object") {
-      if (callbackOptions.hasOwnProperty("success")) {
+      if (Object.prototype.hasOwnProperty.call(callbackOptions, "success")) {
         successCallback = callbackOptions.success;
       }
-      if (callbackOptions.hasOwnProperty("error")) {
+      if (Object.prototype.hasOwnProperty.call(callbackOptions, "error")) {
         errorCallback = callbackOptions.error;
       }
     }
@@ -1073,7 +1071,7 @@ const Aladin = (function () {
 
   // @oldAPI
   Aladin.prototype.createCatalog = function (options) {
-    return A.catalog(options);
+    return catalog(options);
   };
 
   Aladin.prototype.createProgressiveCatalog = function (
@@ -1102,12 +1100,12 @@ const Aladin = (function () {
 
   // @oldAPI
   Aladin.prototype.createFootprintsFromSTCS = function (stcs) {
-    return A.footprintsFromSTCS(stcs);
+    return footprintsFromSTCS(stcs);
   };
 
   // @oldAPI
   Aladin.prototype.createCatalogFromVOTable = function (url, options) {
-    return A.catalogFromURL(url, options);
+    return catalogFromURL(url, options);
   };
 
   Aladin.AVAILABLE_CALLBACKS = [
@@ -1366,7 +1364,7 @@ const Aladin = (function () {
   };
 
   // TODO : integrate somehow into API ?
-  Aladin.prototype.exportAsPNG = function (imgFormat) {
+  Aladin.prototype.exportAsPNG = function () {
     var w = window.open();
     w.document.write('<img src="' + this.getViewDataURL() + '">');
     w.document.title = "Aladin Lite snapshot";
@@ -1403,7 +1401,7 @@ const Aladin = (function () {
    *
    * @API
    */
-  Aladin.prototype.getViewWCS = function (options) {
+  Aladin.prototype.getViewWCS = function () {
     var raDec = this.getRaDec();
     var fov = this.getFov();
     // TODO: support for other projection methods than SIN
@@ -1623,17 +1621,17 @@ Aladin.prototype.box = function (options) {
  */
 Aladin.prototype.showPopup = function (ra, dec, title, content) {
   this.view.catalogForPopup.removeAll();
-  var marker = A.marker(ra, dec, {
+  const lmarker = marker(ra, dec, {
     popupTitle: title,
     popupDesc: content,
     useMarkerDefaultIcon: false,
   });
-  this.view.catalogForPopup.addSources(marker);
+  this.view.catalogForPopup.addSources(lmarker);
   this.view.catalogForPopup.show();
 
   this.view.popup.setTitle(title);
   this.view.popup.setText(content);
-  this.view.popup.setSource(marker);
+  this.view.popup.setSource(lmarker);
   this.view.popup.show();
 };
 
@@ -1691,7 +1689,7 @@ Aladin.prototype.getEmbedCode = function () {
     '<script type="text/javascript" src="http://aladin.unistra.fr/AladinLite/api/v2/latest/aladin.min.js" charset="utf-8"></script>\n';
   s += '<script type="text/javascript">\n';
   s +=
-    'var aladin = A.aladin("#aladin-lite-div", {survey: "' +
+    'var aladin = aladin("#aladin-lite-div", {survey: "' +
     survey +
     'P/DSS2/color", fov: ' +
     fov.toFixed(2) +

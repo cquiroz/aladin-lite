@@ -30,34 +30,34 @@
  *****************************************************************************/
 import $ from 'jquery';
 import Color from './Color';
-import HealpixIndex from './HealpixIndex';
+import { HealpixIndex } from './HealpixIndex';
 import Utils from './Utils';
 import AladinUtils from './AladinUtils';
 import CooConversion from './CooConversion';
 import CooFrameEnum from './CooFrameEnum';
 import Source from './Source';
 import Coo from './coo';
-import * as A from './A';
+import { source } from './A';
 
 // TODO : harmoniser parsing avec classe ProgressiveCat
 const Catalog = (function() {
    const Catalog = function(options) {
         options = options || {};
 
-        this.type = 'catalog';    	this.name = options.name || "catalog";
-    	this.color = options.color || Color.getNextColor();
-    	this.sourceSize = options.sourceSize || 8;
-    	this.markerSize = options.sourceSize || 12;
-    	this.shape = options.shape || "square";
+        this.type = 'catalog';      this.name = options.name || "catalog";
+      this.color = options.color || Color.getNextColor();
+      this.sourceSize = options.sourceSize || 8;
+      this.markerSize = options.sourceSize || 12;
+      this.shape = options.shape || "square";
         this.maxNbSources = options.limit || undefined;
         this.onClick = options.onClick || undefined;
 
         this.raField = options.raField || undefined; // ID or name of the field holding RA
         this.decField = options.decField || undefined; // ID or name of the field holding dec
 
-    	this.indexationNorder = 5; // à quel niveau indexe-t-on les sources
-    	this.sources = [];
-    	this.hpxIdx = new HealpixIndex(this.indexationNorder);
+      this.indexationNorder = 5; // à quel niveau indexe-t-on les sources
+      this.sources = [];
+      this.hpxIdx = new HealpixIndex(this.indexationNorder);
 
         this.displayLabel = options.displayLabel || false;
         this.labelColor = options.labelColor || this.color;
@@ -77,11 +77,11 @@ const Catalog = (function() {
             this._shapeIsFunction = true;
         }
 
-    	this.selectionColor = '#00ff00';
+      this.selectionColor = '#00ff00';
 
 
         // create this.cacheCanvas
-    	// cacheCanvas permet de ne créer le path de la source qu'une fois, et de le réutiliser (cf. http://simonsarris.com/blog/427-increasing-performance-by-caching-paths-on-canvas)
+      // cacheCanvas permet de ne créer le path de la source qu'une fois, et de le réutiliser (cf. http://simonsarris.com/blog/427-increasing-performance-by-caching-paths-on-canvas)
         this.updateShape(options);
 
         this.cacheMarkerCanvas = document.createElement('canvas');
@@ -258,9 +258,7 @@ const Catalog = (function() {
             }
 
             return [raFieldIdx, decFieldIdx];
-        };
-
-
+        }
 
     // return an array of Source(s) from a VOTable url
     // callback function is called each time a TABLE element has been parsed
@@ -364,9 +362,9 @@ const Catalog = (function() {
     // API
     Catalog.prototype.updateShape = function(options) {
         options = options || {};
-    	this.color = options.color || this.color || Color.getNextColor();
-    	this.sourceSize = options.sourceSize || this.sourceSize || 6;
-    	this.shape = options.shape || this.shape || "square";
+      this.color = options.color || this.color || Color.getNextColor();
+      this.sourceSize = options.sourceSize || this.sourceSize || 6;
+      this.shape = options.shape || this.shape || "square";
 
         this.selectSize = this.sourceSize + 2;
 
@@ -379,10 +377,10 @@ const Catalog = (function() {
     // API
     Catalog.prototype.addSources = function(sourcesToAdd) {
         sourcesToAdd = [].concat(sourcesToAdd); // make sure we have an array and not an individual source
-    	this.sources = this.sources.concat(sourcesToAdd);
-    	for (var k=0, len=sourcesToAdd.length; k<len; k++) {
-    	    sourcesToAdd[k].setCatalog(this);
-    	}
+      this.sources = this.sources.concat(sourcesToAdd);
+      for (var k=0, len=sourcesToAdd.length; k<len; k++) {
+          sourcesToAdd[k].setCatalog(this);
+      }
         this.reportChange();
     };
 
@@ -423,7 +421,7 @@ const Catalog = (function() {
                 dataDict[columnNames[colIdx]] = row[colIdx];
             }
 
-            newSources.push(A.source(ra, dec, dataDict));
+            newSources.push(source(ra, dec, dataDict));
         }
 
         this.addSources(newSources);
@@ -496,13 +494,13 @@ const Catalog = (function() {
         //ctx.strokeStyle= this.color;
 
         //ctx.lineWidth = 1;
-    	//ctx.beginPath();
+      //ctx.beginPath();
         if (this._shapeIsFunction) {
             ctx.save();
         }
         var sourcesInView = [];
- 	    for (let k=0, len = this.sources.length; k<len; k++) {
-		    var inView = Catalog.drawSource(this, this.sources[k], ctx, projection, frame, width, height, largestDim, zoomFactor);
+      for (let k=0, len = this.sources.length; k<len; k++) {
+        var inView = Catalog.drawSource(this, this.sources[k], ctx, projection, frame, width, height, largestDim, zoomFactor);
             if (inView) {
                 sourcesInView.push(this.sources[k]);
             }
@@ -512,7 +510,7 @@ const Catalog = (function() {
         }
         //ctx.stroke();
 
-    	// tracé sélection
+      // tracé sélection
         ctx.strokeStyle= this.selectionColor;
         //ctx.beginPath();
         var source;
@@ -525,7 +523,7 @@ const Catalog = (function() {
 
         }
         // NEEDED ?
-    	//ctx.stroke();
+      //ctx.stroke();
 
         // tracé label
         if (this.displayLabel) {
