@@ -43,7 +43,6 @@ import ProgressiveCat from "./ProgressiveCat";
 import Color from "./Color";
 import ColorMap from "./ColorMap";
 import Box from "./Box";
-import Sesame from "./Sesame";
 import Source from "./Source";
 import { catalog, footprintsFromSTCS, catalogFromURL, marker } from "./A";
 
@@ -635,37 +634,34 @@ const Aladin = (function () {
   };
 
   Aladin.prototype.getFovForObject = function (objectName, callback) {
-    var query =
-      "SELECT galdim_majaxis, V FROM basic JOIN ident ON oid=ident.oidref JOIN allfluxes ON oid=allfluxes.oidref WHERE id='" +
-      objectName +
-      "'";
-    var url =
-      "//simbad.u-strasbg.fr/simbad/sim-tap/sync?query=" +
-      encodeURIComponent(query) +
-      "&request=doQuery&lang=adql&format=json&phase=run";
+    const query =
+      `SELECT galdim_majaxis, V FROM basic JOIN ident ON oid=ident.oidref JOIN allfluxes ON oid=allfluxes.oidref WHERE id='${objectName}'`;
+    const url =
+      `//simbad.u-strasbg.fr/simbad/sim-tap/sync?query=${encodeURIComponent(query)}&request=doQuery&lang=adql&format=json&phase=run`;
 
-    var ajax = Utils.getAjaxObject(url, "GET", "json", false);
-    ajax.done(function (result) {
-      var defaultFov = 4 / 60; // 4 arcmin
-      var fov = defaultFov;
+    fetch(url)
+      .then(response => response.json())
+      .then(result => {
+        const defaultFov = 4 / 60; // 4 arcmin
+        let fov = defaultFov;
 
-      if ("data" in result && result.data.length > 0) {
-        var galdimMajAxis = Utils.isNumber(result.data[0][0])
-          ? result.data[0][0] / 60.0
-          : null; // result gives galdim in arcmin
-        var magV = Utils.isNumber(result.data[0][1]) ? result.data[0][1] : null;
+        if ("data" in result && result.data.length > 0) {
+          const galdimMajAxis = Utils.isNumber(result.data[0][0])
+            ? result.data[0][0] / 60.0
+            : null; // result gives galdim in arcmin
+          const magV = Utils.isNumber(result.data[0][1]) ? result.data[0][1] : null;
 
-        if (galdimMajAxis !== null) {
-          fov = 2 * galdimMajAxis;
-        } else if (magV !== null) {
-          if (magV < 10) {
-            fov = (2 * Math.pow(2.0, 6 - magV / 2.0)) / 60;
+          if (galdimMajAxis !== null) {
+            fov = 2 * galdimMajAxis;
+          } else if (magV !== null) {
+            if (magV < 10) {
+              fov = (2 * Math.pow(2.0, 6 - magV / 2.0)) / 60;
+            }
           }
         }
-      }
 
-      typeof callback === "function" && callback(fov);
-    });
+        callback(fov);
+      });
   };
 
   Aladin.prototype.setFrame = function (frameName) {
@@ -705,19 +701,19 @@ const Aladin = (function () {
    *
    */
   Aladin.prototype.gotoObject = function (targetName, callbackOptions) {
-    var errorCallback = undefined;
+    // var errorCallback = undefined;
     var successCallback = undefined;
     if (typeof callbackOptions === "object") {
       if (Object.prototype.hasOwnProperty.call(callbackOptions, "success")) {
         successCallback = callbackOptions.success;
       }
       if (Object.prototype.hasOwnProperty.call(callbackOptions, "error")) {
-        errorCallback = callbackOptions.error;
+        // errorCallback = callbackOptions.error;
       }
     }
     // this is for compatibility reason with the previous method signature which was function(targetName, errorCallback)
     else if (typeof callbackOptions === "function") {
-      errorCallback = callbackOptions;
+      // errorCallback = callbackOptions;
     }
 
     var isObjectName = /[a-zA-Z]/.test(targetName);
@@ -737,27 +733,28 @@ const Aladin = (function () {
     }
     // ask resolution by Sesame
     else {
-      var self = this;
-      Sesame.resolve(
-        targetName,
-        function (data) {
-          // success callback
-          var ra = data.Target.Resolver.jradeg;
-          var dec = data.Target.Resolver.jdedeg;
-          self.view.pointTo(ra, dec);
-
-          typeof successCallback === "function" &&
-            successCallback(self.getRaDec());
-        },
-        function (data) {
-          // errror callback
-          if (console) {
-            console.log("Could not resolve object name " + targetName);
-            console.log(data);
-          }
-          typeof errorCallback === "function" && errorCallback();
-        }
-      );
+      // TODO implement sesame resolution
+      // var self = this;
+      // Sesame.resolve(
+      //   targetName,
+      //   function (data) {
+      //     // success callback
+      //     var ra = data.Target.Resolver.jradeg;
+      //     var dec = data.Target.Resolver.jdedeg;
+      //     self.view.pointTo(ra, dec);
+      //
+      //     typeof successCallback === "function" &&
+      //       successCallback(self.getRaDec());
+      //   },
+      //   function (data) {
+      //     // errror callback
+      //     if (console) {
+      //       console.log("Could not resolve object name " + targetName);
+      //       console.log(data);
+      //     }
+      //     typeof errorCallback === "function" && errorCallback();
+      //   }
+      // );
     }
   };
 
