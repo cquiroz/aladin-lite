@@ -5,7 +5,8 @@
   "main": "lib/js/index.js",
   "scripts": {
     "build": "babel src --out-dir lib",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "npm-watch"
   },
   "repository": {
     "type": "git",
@@ -34,10 +35,18 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^5.2.0",
     "eslint-plugin-react": "^7.29.3",
-    "local-package-publisher": "^1.0.4"
+    "npm-watch": "^0.11.0"
   },
   "dependencies": {
     "loglevel": "^1.8.0"
+  },
+  "watch": {
+    "build": {
+      "patterns": [
+        "src/js/*"
+      ],
+      "extensions": "js"
+    }
   },
   "babel": {
     "presets": [
